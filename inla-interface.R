@@ -16,24 +16,37 @@ ui <- fluidPage(
 )
 
 server <- function(input, output){
-  output$value <- renderPrint({
+  data.input <- eventReactive(input$file, {
     infile <- input$file
     indata <- read.csv2(infile$datapath, header = T)
+    n.variables <- ncol(indata)
+    n.obs <- nrow(indata)
+    list(data = indata, n.variables = n.variables, n.obs = n.obs, infile.path = infile$datapah)
   })
   
+  
   output$ui1 <- renderUI({
-    infile <- input$file
-    indata <- read.csv2(infile$datapath, header = T) #Tem como não duplicar isso?
-    n.variables <- ncol(indata)
-    if(is.null(n.variables))
+    if(is.null(data.input()$n.variables))
       return()
-    Rows <- lapply(1:n.variables, function(number){
+    Rows <- lapply(1:data.input()$n.variables, function(number){
       fluidRow(
-        column(4,textInput(inputId = paste0("mean", number), label = paste0("mean", number)))
+        column(6,textInput(inputId = paste0("mean", number), label = paste0("mean", number), width = "100%"))
       )
     })
-    
   })
+  
+  output$ui2 <- renderUI({
+    if(is.null(data.input()$n.variables))
+      return()
+    Rows <- lapply(1:data.input()$n.variables, function(number){
+      fluidRow(
+        column(6,textInput(inputId = paste0("prec", number), label = paste0("prec", number)))
+      )
+    })
+  })
+  
+  output$value<- renderText({as.character(data.input()$infile.pah)})
 }
 
 shinyApp(ui, server)
+
