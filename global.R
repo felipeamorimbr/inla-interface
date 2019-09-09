@@ -1,1 +1,1 @@
-source("control-fixed-input.r")
+source("control-fixed-input.R")
