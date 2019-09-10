@@ -8,7 +8,8 @@ ui <- fluidPage(
       actionButton("goButton", "Go !")
     ),
     mainPanel(
-      fluidRow(column(4, verbatimTextOutput("value")))
+      fluidRow(column(4, "Código", code(textOutput("code.INLA"))),
+               column(4, "Resultado",  tableOutput("result.INLA")))
     )
   )
 )

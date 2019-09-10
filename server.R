@@ -26,12 +26,14 @@ server <- function(input, output){
     names.variables <- names(model.matrix(formula(indata), data = indata)[1,])
     n.variables <- length(names.variables)
     n.obs <- nrow(indata)
-    
+    name.file <- infile$name
+
     list(data = indata,
          n.variables = n.variables,
          n.obs = n.obs,
          infile.path = infile$datapah,
-         names.variables = names.variables)
+         names.variables = names.variables,
+         name.file = name.file)
   })
   
   priori.input <- eventReactive(input$mean1, { #Organizing the priori matrix
@@ -43,8 +45,20 @@ server <- function(input, output){
     list(prioris = prioris)
   })
   
-  output$value <- renderText({
-  
+  output$result.INLA <- renderTable({
+    input$goButton
+    lm.inla <- isolate(inla(formula = formula(data.input()$data),
+                            data = data.input()$data,
+                            control.fixed = control.fixed.input(prioris = priori.input()$prioris, 
+                                                                    v.names = data.input()$names.variables))
+    )
+  lm.inla$summary.fixed
   })
   
+  output$code.INLA <- renderText({
+    input$goButton
+    isolate(paste0("inla(data = ", data.input()$name.file, "control.fixed = ", 
+                   list.call(control.fixed.input(prioris = priori.input()$prioris, 
+                                                 v.names = data.input()$names.variables) )))
+  })
 }
