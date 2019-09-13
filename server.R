@@ -15,7 +15,9 @@ server <- function(input, output){
       return()
     Rows <- lapply(1:data.input()$n.variables, function(number){
       fluidRow(
-        column(6,textInput(inputId = paste0("prec", number), label = paste0("prec", data.input()$names.variables[number] )))
+        column(6,textInput(inputId = paste0("prec", number),
+                           label = paste0("prec", data.input()$names.variables[number] ),
+                           placeholder = "Precisão deve ser maior que zero"))
       )
     })
   })
@@ -45,14 +47,16 @@ server <- function(input, output){
     list(prioris = prioris)
   })
   
+  lm.inla <- eventReactive(input$goButton , {
+    inla(formula = formula(data.input()$data),
+         data = data.input()$data,
+         control.fixed = control.fixed.input(prioris = priori.input()$prioris, 
+                                             v.names = data.input()$names.variables))
+  })
+  
   output$result.INLA <- renderTable({
     input$goButton
-    lm.inla <- isolate(inla(formula = formula(data.input()$data),
-                            data = data.input()$data,
-                            control.fixed = control.fixed.input(prioris = priori.input()$prioris, 
-                                                                    v.names = data.input()$names.variables))
-    )
-  lm.inla$summary.fixed
+  lm.inla()$summary.fixed
   })
   
   output$code.INLA <- renderText({
