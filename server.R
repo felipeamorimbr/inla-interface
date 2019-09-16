@@ -1,5 +1,23 @@
 server <- function(input, output){
+  #Modal dialog of input file
+  file_modal <- modalDialog(
+    title = "Carregando os dados",
+    fade = FALSE,
+    fileInput("file", label = h3("Selecione o Arquivo com os dados")),
+    dataTableOutput("datafile"),
+    size = "l"
+  )
+  showModal(file_modal)
   
+  #Output table of modal dialog input file
+  output$datafile <- renderDataTable({
+    data.input()$data
+  }, options = list(
+    searching = FALSE,
+    pageLength = 5
+  ))
+  
+  #The input of prioris of betas (mean)
   output$ui1 <- renderUI({ #Generate the input boxes for the mean according to the number of columns of input file
     if(is.null(data.input()$n.variables)) 
       return()
@@ -10,6 +28,7 @@ server <- function(input, output){
     })
   })
   
+  #The input of prioris of betas (precision)
   output$ui2 <- renderUI({ #Generate the input boxes for the precision according to the number of columns of input file
     if(is.null(data.input()$n.variables))
       return()
@@ -22,7 +41,8 @@ server <- function(input, output){
     })
   })
   
-  data.input <- eventReactive(input$file, { #Organizing the input from input$file
+  #Data from input
+  data.input <- eventReactive(input$file, { 
     infile <- input$file
     indata <- read.csv2(infile$datapath, header = T)
     names.variables <- names(model.matrix(formula(indata), data = indata)[1,])
@@ -30,14 +50,15 @@ server <- function(input, output){
     n.obs <- nrow(indata)
     name.file <- infile$name
 
-    list(data = indata,
-         n.variables = n.variables,
+    list(data = indata, #The data from data file
+         n.variables = n.variables, 
          n.obs = n.obs,
          infile.path = infile$datapah,
          names.variables = names.variables,
          name.file = name.file)
   })
   
+  #Prioris of the Beta's
   priori.input <- eventReactive(input$mean1, { #Organizing the priori matrix
     prioris <- matrix(NA, nrow = data.input()$n.variables, ncol = 2)
     for(i in 1:data.input()$n.variables){
@@ -47,6 +68,7 @@ server <- function(input, output){
     list(prioris = prioris)
   })
   
+  #Result from inla
   lm.inla <- eventReactive(input$goButton , {
     inla(formula = formula(data.input()$data),
          data = data.input()$data,
@@ -54,11 +76,13 @@ server <- function(input, output){
                                              v.names = data.input()$names.variables))
   })
   
+  #summary.fixed from inla
   output$result.INLA <- renderTable({
     input$goButton
   lm.inla()$summary.fixed
   })
   
+  #The code used to make the model (need to fix the formula and the control fixed input)
   output$code.INLA <- renderText({
     input$goButton
     isolate(paste0("inla(data = ", data.input()$name.file, "control.fixed = ", 
