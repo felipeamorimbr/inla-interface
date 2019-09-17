@@ -1,13 +1,29 @@
 server <- function(input, output){
+  ####Modal of Input File
   #Modal dialog of input file
   file_modal <- modalDialog(
     title = "Carregando os dados",
     fade = FALSE,
-    fileInput("file", label = h3("Selecione o Arquivo com os dados")),
-    dataTableOutput("datafile"),
-    size = "l"
+    size = "l",
+    footer = actionButton("ok", "OK"),
+    fluidPage(
+      splitLayout(
+        fileInput("file", label = h3("Selecione o Arquivo com os dados")),
+        dataTableOutput("datafile")
+        )
+      )
   )
   showModal(file_modal)
+  
+  #Modal Button
+  observeEvent(input$ok, {
+    if(is.null(input$file)){
+      disable(input$ok)
+    }else{
+      removeModal()
+    }
+  })
+  
   
   #Output table of modal dialog input file
   output$datafile <- renderDataTable({
@@ -17,8 +33,34 @@ server <- function(input, output){
     pageLength = 5
   ))
   
+  ###Side Bar Panel
+  output$uiResponse <- renderUI({
+    if(is.null(data.input()$n.variables))
+      return()
+    radioGroupButtons(
+      inputId = "responseVariable",
+      label = "Selecione a varíavel resposta",
+      choices = data.input()$covariates,
+      justified = TRUE,
+      checkIcon = list(
+        yes = icon("ok",
+                   lib = "glyphicon")
+      )
+    )
+  })
+  
+  output$uiCovariates <- renderUI({
+    if(is.null(data.input()$n.variables))
+      return()
+    radioGroupButtons(
+      inputId = "covariates",
+      label = "Selecione as covariáveis",
+      choices = c("a")
+    )
+  })
+  
   #The input of prioris of betas (mean)
-  output$ui1 <- renderUI({ #Generate the input boxes for the mean according to the number of columns of input file
+  output$uiPrioriMean <- renderUI({ #Generate the input boxes for the mean according to the number of columns of input file
     if(is.null(data.input()$n.variables)) 
       return()
     Rows <- lapply(1:data.input()$n.variables, function(number){
@@ -29,7 +71,7 @@ server <- function(input, output){
   })
   
   #The input of prioris of betas (precision)
-  output$ui2 <- renderUI({ #Generate the input boxes for the precision according to the number of columns of input file
+  output$uiPrioriPrec <- renderUI({ #Generate the input boxes for the precision according to the number of columns of input file
     if(is.null(data.input()$n.variables))
       return()
     Rows <- lapply(1:data.input()$n.variables, function(number){
@@ -46,16 +88,18 @@ server <- function(input, output){
     infile <- input$file
     indata <- read.csv2(infile$datapath, header = T)
     names.variables <- names(model.matrix(formula(indata), data = indata)[1,])
+    covariates <- names(indata)
     n.variables <- length(names.variables)
     n.obs <- nrow(indata)
     name.file <- infile$name
-
+    
     list(data = indata, #The data from data file
          n.variables = n.variables, 
          n.obs = n.obs,
          infile.path = infile$datapah,
          names.variables = names.variables,
-         name.file = name.file)
+         name.file = name.file,
+         covariates = covariates)
   })
   
   #Prioris of the Beta's
@@ -79,7 +123,7 @@ server <- function(input, output){
   #summary.fixed from inla
   output$result.INLA <- renderTable({
     input$goButton
-  lm.inla()$summary.fixed
+    lm.inla()$summary.fixed
   })
   
   #The code used to make the model (need to fix the formula and the control fixed input)
