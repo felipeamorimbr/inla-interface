@@ -34,6 +34,8 @@ server <- function(input, output){
   ))
   
   ###Side Bar Panel
+  
+  #Box with options of response variable
   output$uiResponse <- renderUI({
     if(is.null(data.input()$n.variables))
       return()
@@ -49,14 +51,26 @@ server <- function(input, output){
     )
   })
   
+  #Box with options of covariates
   output$uiCovariates <- renderUI({
     if(is.null(data.input()$n.variables))
       return()
-    radioGroupButtons(
+    checkboxGroupButtons(
       inputId = "covariates",
       label = "Selecione as covariáveis",
-      choices = c("a")
+      choices = data.input()$covariates[data.input()$covariates != input$responseVariable],
+      selected = data.input()$covariates[data.input()$covariates != input$responseVariable],
+      justified = TRUE,
+      checkIcon = list(
+        yes = icon("ok",
+                   lib = "glyphicon")
+      )
     )
+  })
+  
+  inla.formula <- eventReactive(c(input$responseVariable, input$covariates), {
+    f.covariates <- paste0(input$covariates, collapse = "+")
+    as.formula(paste0(input$responseVariable, "~", f.covariates))
   })
   
   #The input of prioris of betas (mean)
@@ -114,7 +128,7 @@ server <- function(input, output){
   
   #Result from inla
   lm.inla <- eventReactive(input$goButton , {
-    inla(formula = formula(data.input()$data),
+    inla(formula = inla.formula(),
          data = data.input()$data,
          control.fixed = control.fixed.input(prioris = priori.input()$prioris, 
                                              v.names = data.input()$names.variables))
