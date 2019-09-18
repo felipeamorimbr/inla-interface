@@ -6,3 +6,5 @@ list.call <- function(data = list()){
 #Testing
 x <- list(a = 1, b = 2, d = list(j = 25), e = c(1,2,23))
 list.call(x)
+
+func <- as.formula("X1 ~ X2 + X3")

@@ -1,11 +1,13 @@
 server <- function(input, output){
-  ####Modal of Input File
-  #Modal dialog of input file
+  ####Modal Dialog of Input File
+  #Modal dialog of input file ----
+
   file_modal <- modalDialog(
+    useShinyjs(),
     title = "Carregando os dados",
     fade = FALSE,
     size = "l",
-    footer = actionButton("ok", "OK"),
+    footer = disabled(actionButton("ok", "OK")),
     fluidPage(
       splitLayout(
         fileInput("file", label = h3("Selecione o Arquivo com os dados")),
@@ -13,15 +15,17 @@ server <- function(input, output){
         )
       )
   )
+  
   showModal(file_modal)
   
-  #Modal Button
+  #Modal Button ----
   observeEvent(input$ok, {
-    if(is.null(input$file)){
-      disable(input$ok)
-    }else{
       removeModal()
-    }
+  })
+  
+  observeEvent(input$file, {
+    if(!is.null(input$file))
+      shinyjs::enable("ok")
   })
   
   
@@ -33,7 +37,7 @@ server <- function(input, output){
     pageLength = 5
   ))
   
-  ###Side Bar Panel
+  ###Side Bar Panel----
   
   #Box with options of response variable
   output$uiResponse <- renderUI({
@@ -70,7 +74,8 @@ server <- function(input, output){
   
   inla.formula <- eventReactive(c(input$responseVariable, input$covariates), {
     f.covariates <- paste0(input$covariates, collapse = "+")
-    as.formula(paste0(input$responseVariable, "~", f.covariates))
+    f.response <- paste0(input$responseVariable)
+    as.formula(paste0(f.response,rawToChar(as.raw(126)) , f.covariates))
   })
   
   #The input of prioris of betas (mean)
@@ -96,7 +101,7 @@ server <- function(input, output){
       )
     })
   })
-  
+  #Data ----
   #Data from input
   data.input <- eventReactive(input$file, { 
     infile <- input$file
@@ -143,8 +148,6 @@ server <- function(input, output){
   #The code used to make the model (need to fix the formula and the control fixed input)
   output$code.INLA <- renderText({
     input$goButton
-    isolate(paste0("inla(data = ", data.input()$name.file, "control.fixed = ", 
-                   list.call(control.fixed.input(prioris = priori.input()$prioris, 
-                                                 v.names = data.input()$names.variables) )))
+    paste0(inla.formula(), sep = "")
   })
 }

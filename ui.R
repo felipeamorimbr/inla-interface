@@ -2,6 +2,7 @@ ui <- fluidPage(
   titlePanel(title = "INLA"),
   sidebarLayout(
     sidebarPanel(
+      useShinyjs(),
       fluidRow(uiOutput("uiResponse"),
                uiOutput("uiCovariates")),
       fluidRow(column(4, uiOutput("uiPrioriMean")),
