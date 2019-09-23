@@ -148,6 +148,10 @@ server <- function(input, output){
   #The code used to make the model (need to fix the formula and the control fixed input)
   output$code.INLA <- renderText({
     input$goButton
-    paste0(inla.formula(), sep = "")
+    paste0("inla(data = data", "formula =" , input$responseVariable,
+           "~ ", paste0(input$covariates, collapse = " + "), ", control.fixed = ",
+           list.call(control.fixed.input(prioris = priori.input()$prioris, 
+                                                   v.names = data.input()$names.variables)),
+           ")")
   })
 }

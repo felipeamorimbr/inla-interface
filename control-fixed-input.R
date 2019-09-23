@@ -4,14 +4,35 @@ control.fixed.input <- function(prioris, v.names){
   formula.terms <- v.names[-1] #Getting the names of variables
   mean.prioris <- list() #Creating the list for the prioris means
   prec.prioris <- list() #Creating the list for the prioris precisions
+  j <- 1
+  
   for(i in 2:n){ #Puting the terms inside the list
-    mean.prioris[[i-1]] <- ifelse(is.na(prioris[i,1]), inla.set.control.fixed.default()$mean, prioris[i,1])
-    prec.prioris[[i-1]] <- ifelse(is.na(prioris[i,2]), inla.set.control.fixed.default()$prec, prioris[i,2])
+    if(prioris[i,1] != ""){
+      mean.prioris[[j]] <- prioris[i,1]
+      names(mean.prioris)[j] <- formula.terms[i]
+      j <- j+1
+    }
   }
-  names(mean.prioris) <- formula.terms #Putting names on the list
-  names(prec.prioris) <- formula.terms
-  return(list(mean.intercept = ifelse(is.na(prioris[1,1]), inla.set.control.fixed.default()$mean.intercept, prioris[1,1]), #Organizing intercept's priori
-              prec.intercept = ifelse(is.na(prioris[1,2]), inla.set.control.fixed.default()$prec.intercept, prioris[1,2]),
+  if(j != n){
+    mean.prioris[[j]] <- inla.set.control.fixed.default()$mean
+    names(mean.prioris)[j] <- "default"
+  }
+  
+  k <- 1
+  for(l in 2:n){ #Puting the terms inside the list
+    if(prioris[l,1] != ""){
+      prec.prioris[[k]] <- prioris[l,1]
+      names(prec.prioris)[k] <- formula.terms[l]
+      k <- k+1
+    }
+  }
+  if(k != n){
+    prec.prioris[[k]] <- inla.set.control.fixed.default()$mean
+    names(prec.prioris)[k] <- "default"
+  }
+  
+  return(list(mean.intercept = ifelse(prioris[1,1] == "", inla.set.control.fixed.default()$mean.intercept, prioris[1,1]), #Organizing intercept's priori
+              prec.intercept = ifelse(prioris[1,2] == "", inla.set.control.fixed.default()$prec.intercept, prioris[1,2]),
               mean = mean.prioris,
               prec = prec.prioris))
 }
