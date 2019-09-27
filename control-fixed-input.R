@@ -1,7 +1,7 @@
 #Function that return the input of control.fixed()
 control.fixed.input <- function(prioris, v.names){
   n <- nrow(prioris) #Number of variables + 1 (intercept)
-  formula.terms <- v.names[-1] #Getting the names of variables
+  formula.terms <- v.names #Getting the names of variables and excluding the intercept
   mean.prioris <- list() #Creating the list for the prioris means
   prec.prioris <- list() #Creating the list for the prioris precisions
   j <- 1
@@ -20,8 +20,8 @@ control.fixed.input <- function(prioris, v.names){
   
   k <- 1
   for(l in 2:n){ #Puting the terms inside the list
-    if(prioris[l,1] != ""){
-      prec.prioris[[k]] <- prioris[l,1]
+    if(prioris[l,2] != ""){
+      prec.prioris[[k]] <- prioris[l,2]
       names(prec.prioris)[k] <- formula.terms[l]
       k <- k+1
     }
