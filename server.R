@@ -74,7 +74,7 @@ server <- function(input, output){
     )
   })
   
-  #Side Optins Covariates Variable ----
+  #Side Options Covariates Variable ----
   output$uiCovariates <- renderUI({
     if(is.null(data.input()$n.variables))
       return()
@@ -92,8 +92,8 @@ server <- function(input, output){
   })
   
   #Side Boxes Mean Priori ----
-  output$uiPrioriMean <- renderUI({ #Generate the input boxes for the mean according to the number of columns of input file
-    if(is.null(data.input()$n.variables)) 
+  output$uiPrioriMean <- renderUI({ #Generate the input boxes for the mean 
+    if(is.null(data.input()$n.variables)) # according to the number of columns of input file
       return()
     Rows <- lapply(1:data.input()$n.variables, function(number){
       fluidRow(
@@ -151,7 +151,7 @@ server <- function(input, output){
   })
   
 
-  #The code used to make the model 
+  # Main Code to make Inla----
   output$code.INLA <- renderText({
     input$goButton
     isolate(paste0("inla(data = data, ", "formula =" , input$responseVariable,

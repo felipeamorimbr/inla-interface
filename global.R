@@ -1,5 +1,6 @@
 library(INLA)
 library(shinyWidgets)
 library(shinyjs)
+library(rhandsontable)
 source("control-fixed-input.R")
 source("call-list.R")
