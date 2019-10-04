@@ -9,10 +9,14 @@ server <- function(input, output){
     footer = tagList(disabled(actionButton("open_file", "Abrir")),
                      modalButton("Cancelar")),
     fluidPage(
-      splitLayout(
-        fileInput("file", label = h3("Selecione o Arquivo com os dados")),
-        dataTableOutput("datafile")
-      )
+        fluidRow(
+          column(4,
+          fileInput("file", label = h4("Selecione o Arquivo com os dados")),
+          actionLink("file_adv_options", label = "Opções Avançadas"),
+          shinyjs::hidden(uiOutput("file_options"))
+          ),
+          column(8,dataTableOutput("datafile"))
+        )
     )
   )
   
@@ -26,7 +30,7 @@ server <- function(input, output){
   })
   
   observeEvent(input$file, {
-    if(!is.null(input$file))
+    if(!is.null(input$file) & (file_ext(input$file$datapath) %in% accetable_formats))
       shinyjs::enable("open_file")
   })
   
@@ -35,33 +39,69 @@ server <- function(input, output){
     data.input()$data
   }, options = list(
     searching = FALSE,
-    pageLength = 5
+    pageLength = 5,
+    lengthMenu = c(5,10)
   ))
-
+  
+  #Modal File Options
+  output$file_options <- renderUI({
+    switch (file_ext(input$file$datapath),
+      "csv" = fluidPage(
+        fluidRow(
+          checkboxInput(inputId = "csv_header",
+                        label = "Cabeçalho",
+                        value = TRUE)
+        ),
+        fluidRow(
+          textInput(inputId = "csv_sep",
+                    label = "Separador",
+                    value = ";")  
+        ),
+        fluidRow(
+          textInput(inputId = "csv_quote",
+                    label = "Quote",
+                    value = "\"")
+        ),
+        fluidRow(
+          textInput(inputId = "csv_dec",
+                    label = "Decimal",
+                    value = ",")
+        )
+      )
+    )
+  })
+  
+  observeEvent(input$file_adv_options,{
+    shinyjs::toggle("file_options",
+                    anim = TRUE)
+  })
   #Data ----
-  data.input <- eventReactive(input$file, { 
-    infile <- input$file
-    indata <- read.csv2(infile$datapath, header = T)
+  data.input <- eventReactive(input$file, {
+    if(!(file_ext(input$file$datapath) %in% accetable_formats)){
+      return(NULL)
+    }else{
+    indata <- read.csv2(input$file$datapath, header = T)
     names.variables <- names(model.matrix(formula(indata), data = indata)[1,])
     covariates <- names(indata)
     n.variables <- length(names.variables)
     n.obs <- nrow(indata)
-    name.file <- infile$name
+    name.file <- input$file$name
     
     list(data = indata, #The data from data file
          n.variables = n.variables, 
          n.obs = n.obs,
-         infile.path = infile$datapah,
+         infile.path = input$file$datapath,
          names.variables = names.variables,
          name.file = name.file,
          covariates = covariates)
+    }
   })
   
   #Main Panel ----
   #Table with Data ----
   observeEvent(input$open_file, {
     output$data <- renderRHandsontable({
-      rhandsontable(data.input()$data, digits = 10) %>%
+      rhandsontable(data.input()$data, digits = 10, height = 800, stretchH = "all") %>%
         hot_cols(format = "0.0000")
     })
   })
@@ -158,21 +198,18 @@ server <- function(input, output){
   tabindex <- reactiveVal(0)
   observeEvent(input$lm_ok, {
     removeModal()
-    lm_inla <- inla(formula = inla.formula(),
-                    data = data.input()$data)
     
     tabindex(tabindex() + 1)
+    lm_inla <- list()
+    lm_inla[[tabindex()]] <- inla(formula = inla.formula(),
+                                  data = data.input()$data)
     appendTab(inputId = "mytabs", select = TRUE,
               tabPanel(title = paste0("Modelo", tabindex()), 
-                       fluidRow(column(4, "Resultado",  tableOutput("result.INLA")))))
-  })
-  
-  lm_inla <- eventReactive(input$lm_ok, {
-    inla(formula = inla.formula(),
-         data = data.input()$data)
-  })
-  
-  output$result.INLA <- renderTable({
-    lm_inla()$summary.fixed
+                       fluidRow(column(4, "Resultado", 
+                                       tags$data(lm_inla[[tabindex()]]$summary.fixed)
+                       )
+                       )
+              )
+    )
   })
 }
