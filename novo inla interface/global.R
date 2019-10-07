@@ -6,4 +6,6 @@ library(INLA)
 library(rhandsontable)
 library(shinyWidgets)
 
-accetable_formats <- c("csv")
+source("file_ext.R")
+
+accetable_formats <- c("csv", "txt")

@@ -12,7 +12,9 @@ server <- function(input, output){
         fluidRow(
           column(4,
           fileInput("file", label = h4("Selecione o Arquivo com os dados")),
-          actionLink("file_adv_options", label = "Opções Avançadas"),
+          actionLink(inputId = "file_adv_options",
+                     label = "Opções Avançadas"),
+          textOutput(outputId = "file_error_extension"),
           shinyjs::hidden(uiOutput("file_options"))
           ),
           column(8,dataTableOutput("datafile"))
@@ -30,22 +32,25 @@ server <- function(input, output){
   })
   
   observeEvent(input$file, {
-    if(!is.null(input$file) & (file_ext(input$file$datapath) %in% accetable_formats))
+    if(!is.null(input$file) & (file_ext(input$file$datapath) %in% accetable_formats)){
       shinyjs::enable("open_file")
+    }
+    if(!(file_ext(input$file$datapath) %in% accetable_formats))
+      output$file_error_extension <- renderText("Extensão Inválida")
   })
   
   #Modal Table output ----
-  output$datafile <- renderDataTable({
+  output$datafile <- renderDataTable(
     data.input()$data
-  }, options = list(
+  , options = list(
     searching = FALSE,
     pageLength = 5,
-    lengthMenu = c(5,10)
-  ))
+    lengthMenu = c(5,10)))
   
   #Modal File Options
   output$file_options <- renderUI({
     switch (file_ext(input$file$datapath),
+            "txt" = ,
       "csv" = fluidPage(
         fluidRow(
           checkboxInput(inputId = "csv_header",
@@ -55,17 +60,20 @@ server <- function(input, output){
         fluidRow(
           textInput(inputId = "csv_sep",
                     label = "Separador",
-                    value = ";")  
+                    value = ";",
+                    width = "20%")  
         ),
         fluidRow(
           textInput(inputId = "csv_quote",
                     label = "Quote",
-                    value = "\"")
+                    value = "\"",
+                    width = "20%")
         ),
         fluidRow(
           textInput(inputId = "csv_dec",
                     label = "Decimal",
-                    value = ",")
+                    value = ",",
+                    width = "20%")
         )
       )
     )
@@ -76,11 +84,16 @@ server <- function(input, output){
                     anim = TRUE)
   })
   #Data ----
-  data.input <- eventReactive(input$file, {
+  data.input <- eventReactive(c(input$file, input$csv_header, input$csv_quote, input$csv_dec), {
     if(!(file_ext(input$file$datapath) %in% accetable_formats)){
       return(NULL)
     }else{
-    indata <- read.csv2(input$file$datapath, header = T)
+    indata <- read.table(input$file$datapath,
+                        header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
+                        sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
+                        quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
+                        dec = ifelse(is.null(input$csv_quote), ",", input$csv_quote)
+    )
     names.variables <- names(model.matrix(formula(indata), data = indata)[1,])
     covariates <- names(indata)
     n.variables <- length(names.variables)
@@ -202,7 +215,7 @@ server <- function(input, output){
     tabindex(tabindex() + 1)
     lm_inla <- list()
     lm_inla[[tabindex()]] <- inla(formula = inla.formula(),
-                                  data = data.input()$data)
+                                  data = hot_to_r(input$data))
     appendTab(inputId = "mytabs", select = TRUE,
               tabPanel(title = paste0("Modelo", tabindex()), 
                        fluidRow(column(4, "Resultado", 
