@@ -256,21 +256,21 @@ server <- function(input, output){
     removeModal()
     
     tabindex(tabindex() + 1)
-    # lm_inla <- list() ## Global
-    lm_inla[[tabindex()]] <<- inla(formula = inla.formula(), ## Atualizando o escopo global
+    lm_inla <- list() ## Global
+    lm_inla[[tabindex()]] <- inla(formula = inla.formula(), ## Atualizando o escopo global
                                    data = hot_to_r(input$data))
     
-    output_name <- paste("output_tab", tabindex(), sep = "_")
-    output[[output_name]] <- renderPrint({
-      summary(lm_inla[[tabindex()]]) ## Da pra jogar o teu Call aqui dentro
-    }, width = 200)
-    
+    # output_name <- paste("output_tab", tabindex(), sep = "_")
+    # output[[output_name]] <- renderPrint({
+    #   summary(lm_inla[[tabindex()]]) ## Da pra jogar o teu Call aqui dentro
+    # }, width = 200)
+
     appendTab(inputId = "mytabs", select = TRUE, 
               tabPanel(title = paste0("Modelo", tabindex()), 
                        fluidRow(column(4, 
                                        "Resultado", 
-                                       # tags$data(lm_inla[[tabindex()]]$summary.fixed)
-                                       verbatimTextOutput(outputId = local(output_name))
+                                       tags$data(lm_inla[[tabindex()]]$summary.fixed)
+                                       # verbatimTextOutput(outputId = local(output_name))
                        )
                        )
               )
