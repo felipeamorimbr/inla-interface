@@ -9,3 +9,4 @@ library(shinyWidgets)
 source("file_ext.R")
 
 accetable_formats <- c("csv", "txt")
+lm_inla <- list()

@@ -79,18 +79,17 @@ server <- function(input, output){
   make_dt <- reactive({
     data_teste <- data.input()$data
     cols_numeric <- which(sapply(data_teste, class) == "numeric")
-    data_teste <- DT::datatable(data_teste)
+    data_teste <- DT::datatable(data_teste, 
+                                options = list(searching = FALSE, 
+                                               pageLength = 5,
+                                               lengthMenu = c(5, 10)))
     
     data_teste <- DT::formatRound(table = data_teste, columns = cols_numeric, digits = 4)
     
     return(data_teste)
   })
   
-  output$datafile <- DT::renderDataTable(make_dt(), 
-                                         options = list(searching = FALSE, 
-                                                        pageLength = 5,
-                                                        lengthMenu = c(5, 10))
-  )
+  output$datafile <- DT::renderDataTable(make_dt())
   
   # ##-- Modal File Options
   # output$file_options <- renderUI({
@@ -197,8 +196,7 @@ server <- function(input, output){
       choices = data.input()$covariates,
       justified = TRUE,
       checkIcon = list(
-        yes = icon("ok",
-                   lib = "glyphicon")
+        yes = icon("ok", lib = "glyphicon")
       )
     )
   })
@@ -236,9 +234,9 @@ server <- function(input, output){
     
     Rows <- lapply(1:data.input()$n.variables, function(number){
       fluidRow(
-        column(6,textInput(inputId = paste0("prec", number),
-                           label = paste0("prec", data.input()$names.variables[number] ),
-                           placeholder = "Precisão deve ser maior que zero"))
+        column(6, textInput(inputId = paste0("prec", number),
+                            label = paste0("prec", data.input()$names.variables[number] ),
+                            placeholder = "Precisão deve ser maior que zero"))
       )
     })
   })
@@ -258,13 +256,21 @@ server <- function(input, output){
     removeModal()
     
     tabindex(tabindex() + 1)
-    lm_inla <- list()
-    lm_inla[[tabindex()]] <- inla(formula = inla.formula(),
-                                  data = hot_to_r(input$data))
-    appendTab(inputId = "mytabs", select = TRUE,
+    # lm_inla <- list() ## Global
+    lm_inla[[tabindex()]] <<- inla(formula = inla.formula(), ## Atualizando o escopo global
+                                   data = hot_to_r(input$data))
+    
+    output_name <- paste("output_tab", tabindex(), sep = "_")
+    output[[output_name]] <- renderPrint({
+      summary(lm_inla[[tabindex()]]) ## Da pra jogar o teu Call aqui dentro
+    }, width = 200)
+    
+    appendTab(inputId = "mytabs", select = TRUE, 
               tabPanel(title = paste0("Modelo", tabindex()), 
-                       fluidRow(column(4, "Resultado", 
-                                       tags$data(lm_inla[[tabindex()]]$summary.fixed)
+                       fluidRow(column(4, 
+                                       "Resultado", 
+                                       # tags$data(lm_inla[[tabindex()]]$summary.fixed)
+                                       verbatimTextOutput(outputId = local(output_name))
                        )
                        )
               )
