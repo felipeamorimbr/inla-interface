@@ -258,7 +258,7 @@ server <- function(input, output){
     tabindex(tabindex() + 1)
     output_name <- paste("output_tab", tabindex(), sep = "_")
     
-    # lm_inla <- list() ## Global
+    lm_inla <- list()
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
                                    data = hot_to_r(input$data))
     
