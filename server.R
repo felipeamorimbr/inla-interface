@@ -138,7 +138,7 @@ server <- function(input, output){
   lm.inla <- eventReactive(input$goButton , {
     inla(formula = inla.formula(),
          data = data.input()$data,
-         control.fixed = control.fixed.input(prioris = priori.input()$prioris, 
+         control.fixed = control_fixed_input(prioris = priori.input()$prioris, 
                                              v.names = data.input()$names.variables))
   })
   

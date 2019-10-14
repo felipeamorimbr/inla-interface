@@ -132,11 +132,13 @@ server <- function(input, output){
     if(!(file_ext(input$file$datapath) %in% accetable_formats)){
       return(NULL)
     } else {
-      indata <- read.table(input$file$datapath,
-                           header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
-                           sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
-                           quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
-                           dec = ifelse(is.null(input$csv_quote), ",", input$csv_quote)
+      indata <- switch(file_ext(input$file$datapath),
+                       "txt" =,
+                       "csv" = read.table(input$file$datapath,
+                                          header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
+                                          sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
+                                          quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
+                                          dec = ifelse(is.null(input$csv_quote), ",", input$csv_quote))
       )
       names.variables <- names(model.matrix(formula(indata), data = indata)[1,])
       covariates <- names(indata)
@@ -171,7 +173,7 @@ server <- function(input, output){
     size = "l",
     footer = tagList(modalButton("Cancelar"),
                      actionButton("lm_ok", "Ok")),
-    navlistPanel(
+    tabsetPanel(
       id = "linear_panel",
       selected = "Selecione Varíaveis",
       tabPanel(title = "Selecione Varíaveis",
@@ -259,8 +261,17 @@ server <- function(input, output){
     output_name <- paste("output_tab", tabindex(), sep = "_")
     
     lm_inla <- list()
+    prioris <- matrix("", nrow = data.input()$n.variables, ncol = 2)
+    for(i in 1:data.input()$n.variables){
+      prioris[i,1] <- ifelse(exists("input$mean1"), input[[ paste0("mean",i) ]], "")
+      prioris[i,2] <- ifelse(exists("input$prec1"), input[[ paste0("prec",i) ]], "")
+    }
+    
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
-                                   data = hot_to_r(input$data))
+                                   data = hot_to_r(input$data),
+                                   control.fixed = control_fixed_input(prioris = prioris,
+                                                                       v.names = data.input()$names.variables)
+                                   )
     
     output[[output_name]] <- renderPrint({
       summary(lm_inla[[output_name]]) ## Da pra jogar o teu Call aqui dentro
