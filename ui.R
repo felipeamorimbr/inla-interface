@@ -1,18 +1,13 @@
-ui <- fluidPage(
-  titlePanel(title = "INLA"),
-  sidebarLayout(
-    sidebarPanel(
-      useShinyjs(),
-      fluidRow(uiOutput("uiResponse"),
-               uiOutput("uiCovariates")),
-      fluidRow(column(4, uiOutput("uiPrioriMean")),
-               column(4, uiOutput("uiPrioriPrec"))
-      ),
-      actionButton("goButton", "Go !")
-    ),
-    mainPanel(
-      fluidRow(column(4, "Código", code(textOutput("code.INLA"))),
-               column(4, "Resultado",  tableOutput("result.INLA")))
-    )
-  )
+ui <- fluidPage(theme = "styles.css", 
+                fluidRow(useShinyjs(), 
+                         smNavBar("menu", "INLA", full.width = TRUE, fixed = FALSE,
+                                  smNavDropdown(label = "Arquivo",
+                                                smAction("file_action_btn", "Arquivo")),
+                                  smNavDropdown(label = "Modelos",
+                                                smAction("linear_action_btn", "Regressão Linear")))
+                ),
+                tabsetPanel (type = "pills", id = "mytabs", 
+                            tabPanel("Dados", rHandsontableOutput(outputId = "data")),
+                            hr()
+                )
 )
