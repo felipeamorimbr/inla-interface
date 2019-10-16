@@ -1,21 +1,24 @@
 #Function that return the input of control.fixed()
 control_fixed_input <- function(prioris, v.names){
+  control_fixed_input_list <- list() #Creating the object to return
+  if(prioris[1,1] != "") #If existis, putting mean and precion of intercept on the list
+    control_fixed_input_list[["mean.intercept"]] <- prioris[1,1]
+  if(prioris[1,2] != "")
+    control_fixed_input_list[["prec.intercept"]] <- prioris[1,2]
+  
+  
   n <- nrow(prioris) #Number of variables + 1 (intercept)
   formula.terms <- v.names #Getting the names of variables and excluding the intercept
   mean.prioris <- list() #Creating the list for the prioris means
   prec.prioris <- list() #Creating the list for the prioris precisions
-  j <- 1
   
+  j <- 1
   for(i in 2:n){ #Puting the terms inside the list
     if(prioris[i,1] != ""){
       mean.prioris[[j]] <- prioris[i,1]
       names(mean.prioris)[j] <- formula.terms[i]
       j <- j+1
     }
-  }
-  if(j != n){
-    mean.prioris[[j]] <- inla.set.control.fixed.default()$mean
-    names(mean.prioris)[j] <- "default"
   }
   
   k <- 1
@@ -26,14 +29,12 @@ control_fixed_input <- function(prioris, v.names){
       k <- k+1
     }
   }
-  if(k != n){
-    prec.prioris[[k]] <- inla.set.control.fixed.default()$mean
-    names(prec.prioris)[k] <- "default"
-  }
+
+  if(length(mean.prioris) != 0)
+    control_fixed_input_list[["mean"]] <- mean.prioris
+  if(length(prec.prioris) != 0)
+    control_fixed_input_list[["prec"]] <- prec.prioris
   
-  return(list(mean.intercept = ifelse(prioris[1,1] == "", inla.set.control.fixed.default()$mean.intercept, prioris[1,1]), #Organizing intercept's priori
-              prec.intercept = ifelse(prioris[1,2] == "", inla.set.control.fixed.default()$prec.intercept, prioris[1,2]),
-              mean = mean.prioris,
-              prec = prec.prioris))
+  return(control_fixed_input_list)
 }
 

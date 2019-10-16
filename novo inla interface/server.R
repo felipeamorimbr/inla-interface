@@ -110,6 +110,7 @@ server <- function(input, output){
       )
       names.variables <- names(model.matrix(formula(indata), data = indata)[1,])
       covariates <- names(indata)
+      names.variables <- c(names.variables[1], covariates[1], names.variables[-1])
       n.variables <- length(names.variables)
       n.obs <- nrow(indata)
       name.file <- input$file$name
@@ -229,10 +230,12 @@ server <- function(input, output){
     output_name <- paste("output_tab", tabindex(), sep = "_")
     
     lm_inla <- list()
+    lm_inla_call_print <- list()
     prioris <- matrix("", nrow = data.input()$n.variables, ncol = 2)
+    browser()
     for(i in 1:data.input()$n.variables){
-      prioris[i,1] <- ifelse(exists("input$mean1"), input[[ paste0("mean",i) ]], "")
-      prioris[i,2] <- ifelse(exists("input$prec1"), input[[ paste0("prec",i) ]], "")
+      prioris[i,1] <- ifelse("prec1" %in% names(input), input[[ paste0("mean",i) ]], "")
+      prioris[i,2] <- ifelse("prec1" %in% names(input), input[[ paste0("prec",i) ]], "")
     }
     
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
@@ -240,8 +243,9 @@ server <- function(input, output){
                                    control.fixed = control_fixed_input(prioris = prioris,
                                                                        v.names = data.input()$names.variables)
                                    )
-    
+    lm_inla_call_print[[output_name]] <- ""
     output[[output_name]] <- renderPrint({
+      lm_inla[[output_name]]$call <- lm_inla_call_print[[output_name]]
       summary(lm_inla[[output_name]]) ## Da pra jogar o teu Call aqui dentro
     }, width = 200)
 

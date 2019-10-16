@@ -155,7 +155,7 @@ server <- function(input, output){
   output$code.INLA <- renderText({
     input$goButton
     isolate(paste0("inla(data = data, ", "formula =" , input$responseVariable,
-           "~ ", paste0(input$covariates, collapse = " + "), ", control.fixed = ",
+           " ~ ", paste0(input$covariates, collapse = " + "), ", control.fixed = ",
            list.call(control_fixed_input(prioris = priori.input()$prioris, 
                                          v.names = data.input()$names.variables)),
            ")"))
