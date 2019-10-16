@@ -156,7 +156,7 @@ server <- function(input, output){
     input$goButton
     isolate(paste0("inla(data = data, ", "formula =" , input$responseVariable,
            "~ ", paste0(input$covariates, collapse = " + "), ", control.fixed = ",
-           list.call(control.fixed.input(prioris = priori.input()$prioris, 
+           list.call(control_fixed_input(prioris = priori.input()$prioris, 
                                          v.names = data.input()$names.variables)),
            ")"))
   })

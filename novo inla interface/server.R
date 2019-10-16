@@ -91,38 +91,6 @@ server <- function(input, output){
   
   output$datafile <- DT::renderDataTable(make_dt())
   
-  # ##-- Modal File Options
-  # output$file_options <- renderUI({
-  #   switch(file_ext(input$file$datapath),
-  #          "txt" = ,
-  #          "csv" = fluidPage(
-  #            fluidRow(
-  #              checkboxInput(inputId = "csv_header",
-  #                            label = "Cabeçalho",
-  #                            value = TRUE)
-  #            ),
-  #            fluidRow(
-  #              textInput(inputId = "csv_sep",
-  #                        label = "Separador",
-  #                        value = ";",
-  #                        width = "20%")  
-  #            ),
-  #            fluidRow(
-  #              textInput(inputId = "csv_quote",
-  #                        label = "Quote",
-  #                        value = "\"",
-  #                        width = "20%")
-  #            ),
-  #            fluidRow(
-  #              textInput(inputId = "csv_dec",
-  #                        label = "Decimal",
-  #                        value = ",",
-  #                        width = "20%")
-  #            )
-  #          )
-  #   )
-  # })
-  
   observeEvent(input$file_adv_options,{
     shinyjs::toggle("file_options", anim = TRUE)
   })
