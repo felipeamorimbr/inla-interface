@@ -95,8 +95,99 @@ server <- function(input, output){
     shinyjs::toggle("file_options", anim = TRUE)
   })
   
+  #Modal Dialog Options ----
+  options_modal <- modalDialog(
+    title = "Opções",
+    fade = FALSE,
+    size = "l",
+    footer = tagList(actionButton("ok_btn_options_modal", "Ok"),
+                     modalButton("Cancelar")),
+    fluidPage(
+      fluidRow(selectInput(inputId = "ccompute_input_1",
+                           label = "Estratégia Computacional",
+                           choices = list("Pequena" = "small",
+                                          "Média" = "medium",
+                                          "Grande" = "large",
+                                          "Imenso" = "huge",
+                                          "Padrão" = "default"),
+                           selected = "default",
+                           multiple = FALSE,
+                           width = '30%')),
+      fluidRow(checkboxInput(inputId = "ccompute_input_2",
+                             label = "Calcular a Marginal dos Hiperparâmetros",
+                             value = TRUE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_3",
+                             label = "Retornar as marginais do campo latente",
+                             value = TRUE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_4",
+                             label = "Calcular o valor-DIC",
+                             value = FALSE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_5",
+                             label = "Calcular as marginais da Verssimilhança",
+                             value = TRUE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_6",
+                             label = "Calcular o CPO",
+                             value = FALSE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_7",
+                             label = "Calcular a preditive ordinate",
+                             value = FALSE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_8",
+                             label = "Calcular o WAIC",
+                             value = FALSE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_9",
+                             label = "Gerar as imagens da matriz de precição, matriz de precição reordenada
+                             e o triangulo de Cholesky",
+                             value = FALSE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_10",
+                             label = "Guardar as aproximações do Gaussian Markov Random Field",
+                             value = FALSE)),
+      fluidRow(selectInput(inputId = "ccompute_input_11",
+                           label = "Estratégia para resolver a matriz esparça",
+                           choices = list("Taucs" = "taucs",
+                                          "Band" = "band",
+                                          "Pardiso" = "pardiso",
+                                          "Padrão" = "default"),
+                           selected = inla.getOption("smtp"),
+                           multiple = FALSE,
+                           width = '30%')),
+      fluidRow(checkboxInput(inputId = "ccompute_input_12",
+                             label = "Retornar os Gráficos",
+                             value = TRUE)),
+      fluidRow(checkboxInput(inputId = "ccompute_input_13",
+                             label = "Retornar as densidades Gaussianas",
+                             value = FALSE))
+    )
+  )
+  
+  control_compute_input <- eventReactive(input$ok_btn_options_modal, {
+    list(openmp.strategy = input$ccompute_input_1,
+         hyperpar = input$ccompute_input_2,
+         return.marginals = input$ccompute_input_3,
+         dic = input$ccompute_input_4, 
+         mlik = input$ccompute_input_5,
+         cpo = input$ccompute_input_6,
+         po = input$ccompute_input_7,
+         waic = input$ccompute_input_8,
+         q = input$ccompute_input_9,
+         config = input$ccompute_input_10,
+         smtp = input$ccompute_input_11,
+         graph = input$ccompute_input_12,
+         gdensity = input$ccompute_input_13)
+  
+  })
+  
+  observeEvent(input$ok_btn_options_modal, {
+    removeModal()
+  })
+  
+  observeEvent(input$options_action_btn, {
+    showModal(options_modal)
+  })
+  
   ##-- Data ----
-  data.input <- eventReactive(c(input$file, input$csv_header, input$csv_quote, input$csv_dec), {
+  data.input <- eventReactive(c(input$file,
+                                input$csv_header, input$csv_quote, input$csv_dec
+                                ), {
     if(!(file_ext(input$file$datapath) %in% accetable_formats)){
       return(NULL)
     } else {
@@ -237,11 +328,17 @@ server <- function(input, output){
       prioris[i,1] <- ifelse("prec1" %in% names(input), input[[ paste0("mean",i) ]], NA_real_)
       prioris[i,2] <- ifelse("prec1" %in% names(input), input[[ paste0("prec",i) ]], NA_real_)
     }
-    
+    if(identical(paste0(input$ok_btn_options_modal), character(0))){
+      lm_control_compute <- inla.set.control.compute.default()
+    }else{
+      lm_control_compute <- control_compute_input()
+    }
+
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
                                    data = hot_to_r(input$data),
                                    control.fixed = control_fixed_input(prioris = prioris,
-                                                                       v.names = data.input()$names.variables)
+                                                                       v.names = data.input()$names.variables),
+                                   control.compute = lm_control_compute
                                    )
     lm_inla_call_print[[output_name]] <- paste0("inla(data = ", data.input()$name.file,
                                                 ", formula = ", input$responseVariable,
@@ -249,11 +346,14 @@ server <- function(input, output){
                                                 ifelse(all(is.na(prioris)), "",paste0(", control.fixed = ",
                                                        list_call(control_fixed_input(prioris = prioris,
                                                                                      v.names = data.input()$names.variables))))
-                                                ,")"
+                                                ,
+                                                ifelse(identical(paste0(input$ok_btn_options_modal), character(0)), "",
+                                                       paste0(", control.compe = ", list_call(control_compute_input()))),")"
     )
     output[[output_name]] <- renderPrint({
       lm_inla[[output_name]]$call <- lm_inla_call_print[[output_name]]
       summary(lm_inla[[output_name]]) ## Da pra jogar o teu Call aqui dentro
+      
     }, width = 200)
 
     appendTab(inputId = "mytabs", select = TRUE, 
