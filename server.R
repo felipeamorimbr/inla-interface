@@ -231,8 +231,8 @@ server <- function(input, output){
     title = "Regressão Linear",
     fade = FALSE,
     size = "l",
-    footer = tagList(modalButton("Cancelar"),
-                     actionButton("lm_ok", "Ok")),
+    footer = tagList(actionButton("lm_ok", "Ok") 
+                     ,modalButton("Cancelar")),
     tabsetPanel(
       id = "linear_panel",
       selected = "Selecione Varíaveis",
