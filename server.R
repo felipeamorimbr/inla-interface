@@ -6,18 +6,18 @@ server <- function(input, output){
     title = "Carregando os dados",
     fade = FALSE,
     size = "l",
-    footer = tagList(shinyjs::disabled(actionButton("open_file", "Abrir")),
+    footer = tagList(shinyjs::disabled(actionButton("file_load_btn", "Abrir")),
                      modalButton("Cancelar")),
     fluidPage(
       fluidRow(
         column(width = 4,
                fileInput("file", label = h4("Selecione o Arquivo com os dados")),
-               shinyjs::hidden(actionLink(inputId = "file_adv_options", label = "Opções Avançadas")),
-               textOutput(outputId = "file_error_extension"),
-               shinyjs::hidden(uiOutput("file_options"))
+               shinyjs::hidden(actionLink(inputId = "file_adv_options_btn", label = "Opções Avançadas")),
+               textOutput(outputId = "file_error_extension_txt"),
+               shinyjs::hidden(uiOutput("file_adv_options_ui"))
         ),
         column(width = 8, 
-               DT::dataTableOutput(outputId = "datafile")
+               DT::dataTableOutput(outputId = "file_datatable")
         )
       )
     )
@@ -28,22 +28,22 @@ server <- function(input, output){
     showModal(file_modal)
   })
   
-  observeEvent(input$open_file, {
+  observeEvent(input$file_load_btn, {
     removeModal()
   })
   
   observeEvent(input$file, {
     if(!is.null(input$file) & (file_ext(input$file$datapath) %in% accetable_formats)){
-      shinyjs::enable("open_file")
-      shinyjs::show("file_adv_options")
+      shinyjs::enable("file_load_btn")
+      shinyjs::show("file_adv_options_btn")
     }
     if(!(file_ext(input$file$datapath) %in% accetable_formats))
-      output$file_error_extension <- renderText("Extensão Inválida")
+      output$file_error_extension_txt <- renderText("Extensão Inválida")
   })
   
   ##-- Modal File Options
-  observeEvent(input$file_adv_options, {
-    output$file_options <- renderUI({
+  observeEvent(input$file, {
+    output$file_adv_options_ui <- renderUI({
       switch(file_ext(input$file$datapath),
              "txt" = ,
              "csv" = fluidPage(
@@ -77,7 +77,7 @@ server <- function(input, output){
   
   ##-- Modal Table output ----
   make_dt <- reactive({
-    data_teste <- data.input()$data
+    data_teste <- data_input()$data
     cols_numeric <- which(sapply(data_teste, class) == "numeric")
     data_teste <- DT::datatable(data_teste, 
                                 options = list(searching = FALSE, 
@@ -89,11 +89,13 @@ server <- function(input, output){
     return(data_teste)
   })
   
-  output$datafile <- DT::renderDataTable(make_dt())
+  output$file_datatable <- DT::renderDataTable(make_dt())
   
-  observeEvent(input$file_adv_options,{
-    shinyjs::toggle("file_options", anim = TRUE)
+  observeEvent(input$file_adv_options_btn,{
+    shinyjs::toggle("file_adv_options_ui", anim = TRUE)
   })
+  
+  
   
   #Modal Dialog Options ----
   options_modal <- modalDialog(
@@ -185,7 +187,7 @@ server <- function(input, output){
   })
   
   ##-- Data ----
-  data.input <- eventReactive(c(input$file,
+  data_input <- eventReactive(c(input$file,
                                 input$csv_header, input$csv_quote, input$csv_dec
                                 ), {
     if(!(file_ext(input$file$datapath) %in% accetable_formats)){
@@ -197,7 +199,7 @@ server <- function(input, output){
                                           header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
                                           sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
                                           quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
-                                          dec = ifelse(is.null(input$csv_quote), ",", input$csv_quote))
+                                          dec = ifelse(is.null(input$csv_dec), ",", input$csv_dec))
       )
       names.variables <- names(model.matrix(formula(indata), data = indata)[1,])
       covariates <- names(indata)
@@ -218,9 +220,9 @@ server <- function(input, output){
   
   ##-- Main Panel ----
   ##-- Table with Data ----
-  observeEvent(input$open_file, {
+  observeEvent(input$file_load_btn, {
     output$data <- renderRHandsontable({
-      rhandsontable(data.input()$data, digits = 4, height = 800, stretchH = "all") %>%
+      rhandsontable(data_input()$data, digits = 4, height = 800, stretchH = "all") %>%
         hot_cols(format = "0.0000")
     })
   })
@@ -250,12 +252,12 @@ server <- function(input, output){
   
   ##-- Modal Render UI Response ----
   output$uiResponse <- renderUI({
-    if(is.null(data.input()$n.variables))
+    if(is.null(data_input()$n.variables))
       return()
     radioGroupButtons(
       inputId = "responseVariable",
       label = "Selecione a varíavel resposta",
-      choices = data.input()$covariates,
+      choices = data_input()$covariates,
       justified = TRUE,
       checkIcon = list(
         yes = icon("ok", lib = "glyphicon")
@@ -265,13 +267,13 @@ server <- function(input, output){
   
   ##-- Modal Render UI Covariates ----
   output$uiCovariates <- renderUI({
-    if(is.null(data.input()$n.variables))
+    if(is.null(data_input()$n.variables))
       return()
     checkboxGroupButtons(
       inputId = "covariates",
       label = "Selecione as covariáveis",
-      choices = data.input()$covariates[data.input()$covariates != input$responseVariable],
-      selected = data.input()$covariates[data.input()$covariates != input$responseVariable],
+      choices = data_input()$covariates[data_input()$covariates != input$responseVariable],
+      selected = data_input()$covariates[data_input()$covariates != input$responseVariable],
       justified = TRUE,
       checkIcon = list(
         yes = icon("ok",
@@ -281,24 +283,24 @@ server <- function(input, output){
   })
   
   output$uiPrioriMean <- renderUI({ #Generate the input boxes for the mean 
-    if(is.null(data.input()$n.variables)) return() # according to the number of columns of input file
+    if(is.null(data_input()$n.variables)) return() # according to the number of columns of input file
     
-    Rows <- lapply(1:data.input()$n.variables, function(number){
+    Rows <- lapply(1:data_input()$n.variables, function(number){
       fluidRow(
         column(6,numericInput(inputId = paste0("mean", number),
-                           label = paste0("mean", data.input()$names.variables[number] ),
+                           label = paste0("mean", data_input()$names.variables[number] ),
                            value = character(0)))
       )
     })
   })
   
   output$uiPrioriPrec <- renderUI({ #Generate the input boxes for the precision according to the number of columns of input file
-    if(is.null(data.input()$n.variables)) return()
+    if(is.null(data_input()$n.variables)) return()
     
-    Rows <- lapply(1:data.input()$n.variables, function(number){
+    Rows <- lapply(1:data_input()$n.variables, function(number){
       fluidRow(
         column(6, numericInput(inputId = paste0("prec", number),
-                            label = paste0("prec", data.input()$names.variables[number] ),
+                            label = paste0("prec", data_input()$names.variables[number] ),
                             value = character(0)))
       )
     })
@@ -323,11 +325,12 @@ server <- function(input, output){
     
     lm_inla <- list()
     lm_inla_call_print <- list()
-    prioris <- matrix(NA_real_, nrow = data.input()$n.variables, ncol = 2)
-    for(i in 1:data.input()$n.variables){
+    prioris <- matrix(NA_real_, nrow = data_input()$n.variables, ncol = 2)
+    for(i in 1:data_input()$n.variables){
       prioris[i,1] <- ifelse("prec1" %in% names(input), input[[ paste0("mean",i) ]], NA_real_)
       prioris[i,2] <- ifelse("prec1" %in% names(input), input[[ paste0("prec",i) ]], NA_real_)
     }
+    
     if(identical(paste0(input$ok_btn_options_modal), character(0))){
       lm_control_compute <- inla.set.control.compute.default()
     }else{
@@ -337,15 +340,15 @@ server <- function(input, output){
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
                                    data = hot_to_r(input$data),
                                    control.fixed = control_fixed_input(prioris = prioris,
-                                                                       v.names = data.input()$names.variables),
+                                                                       v.names = data_input()$names.variables),
                                    control.compute = lm_control_compute
                                    )
-    lm_inla_call_print[[output_name]] <- paste0("inla(data = ", data.input()$name.file,
+    lm_inla_call_print[[output_name]] <- paste0("inla(data = ", data_input()$name.file,
                                                 ", formula = ", input$responseVariable,
                                                 " ~ ", paste0(input$covariates, collapse = " + "),
                                                 ifelse(all(is.na(prioris)), "",paste0(", control.fixed = ",
                                                        list_call(control_fixed_input(prioris = prioris,
-                                                                                     v.names = data.input()$names.variables))))
+                                                                                     v.names = data_input()$names.variables))))
                                                 ,
                                                 ifelse(identical(paste0(input$ok_btn_options_modal), character(0)), "",
                                                        paste0(", control.compe = ", list_call(control_compute_input()))),")"
