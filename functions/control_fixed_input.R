@@ -1,4 +1,4 @@
-#Function that return the input of control.fixed()
+#Function that recive the matrix of prioris and the variables names and return the input of control.fixed from INLA
 control_fixed_input <- function(prioris, v.names){
   control_fixed_input_list <- list() #Creating the object to return
   if(!is.na(prioris[1,1])) #If existis, putting mean and precion of intercept on the list

@@ -1,4 +1,4 @@
-#Function that returns call of a list
+#Function that recive a list and returns call used to make the list
 list_call <- function(data = list()){
   return(eval(call("paste0",  call("list", data) , collapse = "")))
 }
