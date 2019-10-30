@@ -123,7 +123,7 @@ server <- function(input, output, session){
                              value = control_compute_input[[3]])),
       fluidRow(checkboxInput(inputId = "ccompute_input_4",
                              label = "Calcular o valor-DIC",
-                             value = control_compute_input[[4]])),
+                             value = globalenv()$control_compute_input[[4]])),
       fluidRow(checkboxInput(inputId = "ccompute_input_5",
                              label = "Calcular as marginais da Verssimilhança",
                              value = control_compute_input[[5]])),
@@ -166,7 +166,7 @@ server <- function(input, output, session){
       openmp.strategy = input$ccompute_input_1,
       hyperpar = input$ccompute_input_2,
       return.marginals = input$ccompute_input_3,
-      dic = input$ccompute_input_4, 
+      dic = input$ccompute_input_4,
       mlik = input$ccompute_input_5,
       cpo = input$ccompute_input_6,
       po = input$ccompute_input_7,
@@ -192,7 +192,7 @@ server <- function(input, output, session){
     #   smtp = input$ccompute_input_11,
     #   graph = input$ccompute_input_12,
     #   gdensity = input$ccompute_input_13)
-    # updateSelectInput(session, inputId = "ccompute_input_1", selected = control_compute_input[[1]])
+    updateSelectInput(session, inputId = "ccompute_input_1", selected = input$ccompute_input_1)
   })
   
   observeEvent(input$ok_btn_options_modal, {
@@ -348,17 +348,12 @@ server <- function(input, output, session){
       prioris[i,2] <- ifelse("prec1" %in% names(input), input[[ paste0("prec",i) ]], NA_real_)
     }
     
-    if(identical(paste0(input$ok_btn_options_modal), character(0))){
-      lm_control_compute <- inla.set.control.compute.default()
-    }else{
-      lm_control_compute <- control_compute_input()
-    }
-
+    browser()
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
                                    data = hot_to_r(input$data),
                                    control.fixed = control_fixed_input(prioris = prioris,
                                                                        v.names = data_input()$names.variables),
-                                   control.compute = lm_control_compute
+                                   control.compute = control_compute_input
                                    )
     lm_inla_call_print[[output_name]] <- paste0("inla(data = ", data_input()$name.file,
                                                 ", formula = ", input$responseVariable,
@@ -368,7 +363,7 @@ server <- function(input, output, session){
                                                                                      v.names = data_input()$names.variables))))
                                                 ,
                                                 ifelse(identical(paste0(input$ok_btn_options_modal), character(0)), "",
-                                                       paste0(", control.compe = ", list_call(control_compute_input()))),")"
+                                                       paste0(", control.compe = ", list_call(control_compute_input))),")"
     )
     output[[output_name]] <- renderPrint({
       lm_inla[[output_name]]$call <- lm_inla_call_print[[output_name]]
