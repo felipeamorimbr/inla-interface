@@ -14,3 +14,5 @@ source("functions/list_call.R")
 accetable_formats <- c("csv", "txt")
 control_compute_input <- inla.set.control.compute.default()
 control_compute_input[[11]] <- inla.getOption("smtp")
+
+control_inla_input <- inla.set.control.inla.default()

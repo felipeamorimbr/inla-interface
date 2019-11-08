@@ -95,98 +95,6 @@ server <- function(input, output, session){
     shinyjs::toggle("file_adv_options_ui", anim = TRUE)
   })
   
-  ##-- Modal Dialog Options ---- DOUGLAS: Coloquei dentro do observe para forçar a criação sempre que clicar em 'opções'
-  # options_modal <- modalDialog(
-  #   title = "Opções",
-  #   fade = FALSE,
-  #   size = "l",
-  #   footer = tagList(actionButton("ok_btn_options_modal", "Ok"),
-  #                    modalButton("Cancelar")),
-  #   fluidPage(
-  #     tabsetPanel(
-  #       tabPanel("Control Compute",
-  #                fluidRow(selectInput(inputId = "ccompute_input_1",
-  #                                     label = "Estratégia Computacional",
-  #                                     choices = list("Pequena" = "small",
-  #                                                    "Média" = "medium",
-  #                                                    "Grande" = "large",
-  #                                                    "Imenso" = "huge",
-  #                                                    "Padrão" = "default"),
-  #                                     selected = control_compute_input[[1]],
-  #                                     multiple = FALSE,
-  #                                     width = '30%')),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_2",
-  #                                       label = "Calcular a Marginal dos Hiperparâmetros",
-  #                                       value = control_compute_input[[2]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_3",
-  #                                       label = "Retornar as marginais do campo latente",
-  #                                       value = control_compute_input[[3]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_4",
-  #                                       label = "Calcular o valor-DIC",
-  #                                       value = globalenv()$control_compute_input[[4]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_5",
-  #                                       label = "Calcular as marginais da Verssimilhança",
-  #                                       value = control_compute_input[[5]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_6",
-  #                                       label = "Calcular o CPO",
-  #                                       value = control_compute_input[[6]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_7",
-  #                                       label = "Calcular a preditive ordinate",
-  #                                       value = control_compute_input[[7]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_8",
-  #                                       label = "Calcular o WAIC",
-  #                                       value = control_compute_input[[8]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_9",
-  #                                       label = "Gerar as imagens da matriz de precição, matriz de precição reordenada
-  #                            e o triangulo de Cholesky",
-  #                                       value = control_compute_input[[9]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_10",
-  #                                       label = "Guardar as aproximações do Gaussian Markov Random Field",
-  #                                       value = control_compute_input[[10]])),
-  #                fluidRow(selectInput(inputId = "ccompute_input_11",
-  #                                     label = "Estratégia para resolver a matriz esparça",
-  #                                     choices = list("Taucs" = "taucs",
-  #                                                    "Band" = "band",
-  #                                                    "Pardiso" = "pardiso",
-  #                                                    "Padrão" = "default"),
-  #                                     selected = control_compute_input[[11]],
-  #                                     multiple = FALSE,
-  #                                     width = '30%')),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_12",
-  #                                       label = "Retornar os Gráficos",
-  #                                       value = control_compute_input[[12]])),
-  #                fluidRow(checkboxInput(inputId = "ccompute_input_13",
-  #                                       label = "Retornar as densidades Gaussianas",
-  #                                       value = control_compute_input[[13]]))
-  #       ),
-  #       tabPanel("Control INLA",
-  #                fluidRow(selectInput(inputId = "cinla_input_1",
-  #                                     label = "Estatégia de aproximação",
-  #                                     choices = list("Guassiana" = "gaussian",
-  #                                                    "Laplace Simplificada" = "simplified.laplace",
-  #                                                    "Laplace" = "laplace"),
-  #                                     selected = "simplified.laplace",
-  #                                     multiple = FALSE,
-  #                                     width = '30%')),
-  #                fluidRow(selectInput(inputId = "cinla_input_2",
-  #                                     label = "Estratégia de Integração",
-  #                                     choices = list("auto" = "auto",
-  #                                                    "ccd" = "ccd",
-  #                                                    "grid" = "grid",
-  #                                                    "eb" = "eb",
-  #                                                    "user" = "user",
-  #                                                    "user.std" = "user.std"),
-  #                                     selected = "auto",
-  #                                     multiple = FALSE,
-  #                                     width = '30%')),
-  #                fluidRow(checkboxInput(inputId = "cinla_input_5",
-  #                                       label = "Substituir Condicional na aproximação de Laplace 
-  #                                       pela esperança da condicional",
-  #                                       value = TRUE))
-  #       )
-  #     )
-  #   )
-  # )
   
   observeEvent(input$ok_btn_options_modal, {
     rlang::env_bind(.env = globalenv(), control_compute_input = list(
@@ -204,26 +112,15 @@ server <- function(input, output, session){
       graph = input$ccompute_input_12,
       gdensity = input$ccompute_input_13))
     
-    removeModal()
     
-    control_inla_input <- list(
+    rlang::env_bind(.env = globalenv(), control_inla_input = list(
       strategy = input$cinla_input_1,
       int.strategy = input$cinla_input_2,
       fast = input$cinla_input_5
-    )
+    ))
+    
+    removeModal()
   })
-  
-  # observeEvent(input$ok_btn_options_modal, { ##-- DOUGLAS: Usando o observe de cima para fazer a remoção
-  #   removeModal()
-  # })
-  # 
-  # observeEvent(input$ok_btn_options_modal, { ##-- DOUGLAS: Não entendi mas movi para cima
-  #   control_inla_input <- list(
-  #     strategy = input$cinla_input_1,
-  #     int.strategy = input$cinla_input_2,
-  #     fast = input$cinla_input_5
-  #   )
-  # })
   
   observeEvent(input$options_action_btn, {
     options_modal <- modalDialog(    ##-- DOUGLAS: Criando o modal aqui dentro. Desta forma ele vai ser recriado toda vez que clicar em opções
@@ -466,12 +363,6 @@ server <- function(input, output, session){
       prioris[i,2] <- ifelse("prec1" %in% names(input), input[[ paste0("prec",i) ]], NA_real_)
     }
     
-    if("cinla_input_1" %in% names(input)){
-      control_inla_input <- control_inla_input()
-    }else{
-      control_inla_input <- inla.set.control.inla.default()
-    }
-    
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
                                    data = hot_to_r(input$data),
                                    control.fixed = control_fixed_input(prioris = prioris,
@@ -499,7 +390,6 @@ server <- function(input, output, session){
               tabPanel(title = paste0("Modelo", tabindex()), 
                        fluidRow(column(4, 
                                        "Resultado", 
-                                       # tags$data(lm_inla[[tabindex()]]$summary.fixed)
                                        verbatimTextOutput(outputId = output_name)
                        )
                        )
