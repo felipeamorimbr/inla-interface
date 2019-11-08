@@ -5,6 +5,7 @@ library(shinyjs)
 library(INLA)
 library(rhandsontable)
 library(shinyWidgets)
+library(DT)
 
 source("functions/file_ext.R")
 source("functions/control_fixed_input.R")
