@@ -96,7 +96,8 @@ server <- function(input, output, session){
   })
   
   
-  observeEvent(input$ok_btn_options_modal, {
+  observeEvent(input$ok_btn_options_modal, { 
+    #Update control_compute_input in global envioronment
     rlang::env_bind(.env = globalenv(), control_compute_input = list(
       openmp.strategy = input$ccompute_input_1,
       hyperpar = input$ccompute_input_2,
@@ -112,7 +113,7 @@ server <- function(input, output, session){
       graph = input$ccompute_input_12,
       gdensity = input$ccompute_input_13))
     
-    
+    #uptdate control_inla_input in global enviroment
     rlang::env_bind(.env = globalenv(), control_inla_input = list(
       strategy = input$cinla_input_1,
       int.strategy = input$cinla_input_2,
@@ -276,8 +277,7 @@ server <- function(input, output, session){
                fluidRow(title = "Selecione a família",
                         selectInput(inputId = "lm_family_input", 
                                     label = "Familia",
-                                    choices = list("Normal" = "normal",
-                                                   "T" = "t"),
+                                    choices = lm_family,
                                     selected = "normal"))
       ),
       tabPanel(title = "Prioris",
@@ -346,9 +346,19 @@ server <- function(input, output, session){
     })
   })
   
-  output$ui_hyper_priori <- renderUI({
-    if(is.null(input$lm_family_input)) return()
-
+  observeEvent(input$lm_family_input, {
+    output$ui_hyper_priori <- renderUI({
+      if(is.null(input$lm_family_input) || (n_hyper(input$lm_family_input) == 0)) return()
+  
+      Rows <- lapply(1:n_hyper(input$lm_family_input), function(number){
+        fluidRow(
+          column(6, selectInput(inputId = shotname_hyper(family = input$lm_family_input, number = number),
+                                label = name_hyper(family = input$lm_family_input, number = number),
+                                choices = priors_distributions,
+                                selected = ))
+        )
+      })
+    })
   })
   
   observeEvent(input$linear_action_btn, {
