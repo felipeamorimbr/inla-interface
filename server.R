@@ -272,13 +272,21 @@ server <- function(input, output, session){
       selected = "Selecione Varíaveis",
       tabPanel(title = "Selecione Varíaveis",
                fluidRow(uiOutput("uiResponse"),
-                        uiOutput("uiCovariates"))
+                        uiOutput("uiCovariates")),
+               fluidRow(title = "Selecione a família",
+                        selectInput(inputId = "lm_family_input", 
+                                    label = "Familia",
+                                    choices = list("Normal" = "normal",
+                                                   "T" = "t"),
+                                    selected = "normal"))
       ),
       tabPanel(title = "Prioris",
                fluidRow(column(4, uiOutput("uiPrioriMean")),
                         column(4, uiOutput("uiPrioriPrec"))
                )
-      )
+      ),
+      tabPanel(title = "Prioris Hyperparâmetros",
+               fluidRow(uiOutput(outputId = "ui_hyper_priori")))
     )
   )
   
@@ -336,6 +344,11 @@ server <- function(input, output, session){
                                value = character(0)))
       )
     })
+  })
+  
+  output$ui_hyper_priori <- renderUI({
+    if(is.null(input$lm_family_input)) return()
+
   })
   
   observeEvent(input$linear_action_btn, {
