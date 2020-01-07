@@ -8,12 +8,17 @@ n_param_prior <- function(prior){
   return(inla.models()$prior[[paste0(prior)]]$nparameters)
 }
 
-#Function that recice family and number returns the name of the hyper param
+#Function that recive family and number (the hyper param) returns the name of the hyper param
 name_hyper <- function(family, number){
   return(inla.models()$likelihood[[paste0(family)]]$hyper[[number]]$name[1])
 }
 
-#Function that recice family and number returns the short.name of the hyper param
-shortname_hyper <- function(family, numer){
+#Function that recive family and number (the hyper param) returns the short.name of the hyper param
+shortname_hyper <- function(family, number){
   return(inla.models()$likelihood[[paste0(family)]]$hyper[[number]]$short.name[1])
+}
+
+#Function that recive family and number (the hyper param) and returns the prior default of the hyper param
+hyper_default <- function(family, number){
+  return(inla.models()$likelihood[[paste0(family)]]$hyper[[number]]$prior[1])
 }

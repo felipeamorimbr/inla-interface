@@ -286,7 +286,10 @@ server <- function(input, output, session){
                )
       ),
       tabPanel(title = "Prioris Hyperparâmetros",
-               fluidRow(uiOutput(outputId = "ui_hyper_priori")))
+               fluidRow(title = "Prioris",
+                        renderTable("lm_hyper_priors_table")
+               )
+      )
     )
   )
   
@@ -346,18 +349,23 @@ server <- function(input, output, session){
     })
   })
   
-  observeEvent(input$lm_family_input, {
-    output$ui_hyper_priori <- renderUI({
-      if(is.null(input$lm_family_input) || (n_hyper(input$lm_family_input) == 0)) return()
   
-      Rows <- lapply(1:n_hyper(input$lm_family_input), function(number){
-        fluidRow(
-          column(6, selectInput(inputId = shotname_hyper(family = input$lm_family_input, number = number),
-                                label = name_hyper(family = input$lm_family_input, number = number),
-                                choices = priors_distributions,
-                                selected = ))
-        )
-      })
+  lm_hyper_priors <- eventReactive(c(input$X, input$lm_family_input), {
+    if(input$X == 0){
+      n_hyper_default <- n_hyper(input$lm_family_input)
+      max_param <- 0
+      for(i in 1:n_hyper_default){
+        if(n_param_prior(hyper_default(input$lm_family_input, i)) > max_param)
+          max_param <- n_param_prior(hyper_default(input$lm_family_input, i))
+      }
+      
+      table_hyper_priors <- matrix(nrow = n_hyper_default, ncol = max_param)
+    }
+  })
+  
+  observeEvent(input$lm_family_input, {
+    output$lm_hyper_priors_table <- renderTable({
+      
     })
   })
   
