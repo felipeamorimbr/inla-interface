@@ -286,13 +286,14 @@ server <- function(input, output, session){
                )
       ),
       tabPanel(title = "Prioris Hyperparâmetros",
-               fluidRow(title = "Prioris",
-                        renderTable("lm_hyper_priors_table")
-               ),
-               fluidRow(actionButton(inputId = "lm_modal_hyper_btn"))
+               fluidRow(column(6, uiOutput("ui_hyper_prior")))
       )
     )
   )
+  
+  observeEvent(input$linear_action_btn, {
+    showModal(linear_model_modal)
+  })
   
   ##-- Modal Render UI Response ----
   output$uiResponse <- renderUI({
@@ -350,34 +351,20 @@ server <- function(input, output, session){
     })
   })
   
-  
-  lm_hyper_priors <- eventReactive(c(input$X, input$lm_family_input), {
-    if(input$X == 0){
-      table_hyper_priors <- list()
-      for(i in 1:n_hyper_default){
-        table_hyper_priors[[ name_hyper(input$lm_family_input, i) ]] <- hyper_default_param(family = input$lm_family_input, i) 
-      }
-    }else{
-      ####
-    }
-  })
-  
-  lm_modal_hype <- modalDialog(
-    title = "Selecionone os Hyperparametros",
-    fade = FALSE,
-    size = "l",
-    footer = taglist()
-  )
-  
-  
-  
-  output$lm_hyper_priors_table <- renderTable({
-    browser()
-    lm_hyper_priors()
-  })
-  
-  observeEvent(input$linear_action_btn, {
-    showModal(linear_model_modal)
+  output$ui_hyper_prior <- renderUI({
+    lapply(1:n_hyper(input$lm_family_input), function(number){
+      fluidRow(column(6, selectInput(inputId = paste0("lm_hyper_dist", number),
+                                     label = paste0("Selecione a Distribuicao do", name_hyper(input$lm_family_input, number)),
+                                     choices = priors_distributions,
+                                     selected = hyper_default(input$lm_family_input, number), 
+                                     multiple = FALSE),
+                      lapply(1:n_param_prior(ifelse(is.null(input$lm_hyper_dist), "normal", hyper_default(input$lm_family_input, number))), function(n_param){
+                        numericInput(inputId = paste0("input_hyper_", number, "_param_", n_param),
+                                     label = paste0("Parametro ", n_param),
+                                     value = 0)
+                      })
+      ))
+    })
   })
   
   inla.formula <- eventReactive(c(input$responseVariable, input$covariates), {
