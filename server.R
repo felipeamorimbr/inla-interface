@@ -288,7 +288,8 @@ server <- function(input, output, session){
       tabPanel(title = "Prioris Hyperparâmetros",
                fluidRow(title = "Prioris",
                         renderTable("lm_hyper_priors_table")
-               )
+               ),
+               fluidRow(actionButton(inputId = "lm_modal_hyper_btn"))
       )
     )
   )
@@ -352,21 +353,27 @@ server <- function(input, output, session){
   
   lm_hyper_priors <- eventReactive(c(input$X, input$lm_family_input), {
     if(input$X == 0){
-      n_hyper_default <- n_hyper(input$lm_family_input)
-      max_param <- 0
+      table_hyper_priors <- list()
       for(i in 1:n_hyper_default){
-        if(n_param_prior(hyper_default(input$lm_family_input, i)) > max_param)
-          max_param <- n_param_prior(hyper_default(input$lm_family_input, i))
+        table_hyper_priors[[ name_hyper(input$lm_family_input, i) ]] <- hyper_default_param(family = input$lm_family_input, i) 
       }
-      
-      table_hyper_priors <- matrix(nrow = n_hyper_default, ncol = max_param)
+    }else{
+      ####
     }
   })
   
-  observeEvent(input$lm_family_input, {
-    output$lm_hyper_priors_table <- renderTable({
-      
-    })
+  lm_modal_hype <- modalDialog(
+    title = "Selecionone os Hyperparametros",
+    fade = FALSE,
+    size = "l",
+    footer = taglist()
+  )
+  
+  
+  
+  output$lm_hyper_priors_table <- renderTable({
+    browser()
+    lm_hyper_priors()
   })
   
   observeEvent(input$linear_action_btn, {

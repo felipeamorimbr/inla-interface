@@ -22,3 +22,10 @@ shortname_hyper <- function(family, number){
 hyper_default <- function(family, number){
   return(inla.models()$likelihood[[paste0(family)]]$hyper[[number]]$prior[1])
 }
+
+#
+hyper_default_param <- function(family, number){
+  param <- inla.models()$likelihood[[paste0(family)]]$hyper[[number]]$param
+  attr(param, "inla.read.only") <- NULL
+  return(param)
+}
