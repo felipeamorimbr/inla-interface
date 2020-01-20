@@ -23,3 +23,10 @@ priors_distributions <- names(inla.models()$prior)
 priors_distributions <- priors_distributions[-c(37,38)]
 
 lm_family <- c("normal", "t")
+
+
+menor <- 0
+for(i in 1:64){
+  if(menor <= n_hyper(inla.models()$likelihood[[i]]$pdf))
+    menor <- n_hyper(inla.models()$likelihood[[i]]$pdf)
+}

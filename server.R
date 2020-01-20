@@ -353,17 +353,37 @@ server <- function(input, output, session){
   
   output$ui_hyper_prior <- renderUI({
     lapply(1:n_hyper(input$lm_family_input), function(number){
-      fluidRow(column(6, selectInput(inputId = paste0("lm_hyper_dist", number),
-                                     label = paste0("Selecione a Distribuicao do", name_hyper(input$lm_family_input, number)),
+      fluidRow(column(6, selectInput(inputId = paste0("lm_hyper_dist_", number),
+                                     label = paste0("Selecione a Distribuicao do ", name_hyper(input$lm_family_input, number)),
                                      choices = priors_distributions,
-                                     selected = hyper_default(input$lm_family_input, number), 
+                                     selected = hyper_default(input$lm_family_input, number),
                                      multiple = FALSE),
-                      lapply(1:n_param_prior(ifelse(is.null(input$lm_hyper_dist), "normal", hyper_default(input$lm_family_input, number))), function(n_param){
-                        numericInput(inputId = paste0("input_hyper_", number, "_param_", n_param),
-                                     label = paste0("Parametro ", n_param),
-                                     value = 0)
-                      })
+                      uiOutput(outputId = paste0("numeric_input_hyper_", number))
+                      # lapply(1:n_param_prior(ifelse(is.null(input[[ paste0 ("lm_hyper_dist_", number)]]) ,hyper_default(input$lm_family_input, number), input[[ paste0 ("lm_hyper_dist_", number)]])), function(n_param){
+                      #   numericInput(inputId = paste0("input_hyper_", number, "_param_", n_param),
+                      #                label = paste0("Parametro ", n_param),
+                      #                value = 0)
+                      # })
       ))
+    })
+  })
+  
+  
+  output$numeric_input_hyper_1 <- renderUI({
+    if(n_param_prior(ifelse(is.null(input[[ paste0 ("lm_hyper_dist_1")]]) ,hyper_default(input$lm_family_input, 1), input[[ paste0 ("lm_hyper_dist_", 1)]])) == 0) return()
+    lapply(1:n_param_prior(ifelse(is.null(input[[ paste0 ("lm_hyper_dist_1")]]) ,hyper_default(input$lm_family_input, 1), input[[ paste0 ("lm_hyper_dist_", 1)]])), function(n_param){
+      numericInput(inputId = paste0("input_hyper_1_param_", n_param),
+                   label = paste0("Parametro ", n_param),
+                   value = hyper_default_param(input$lm_family_input, 1)[n_param])
+    })
+  })
+  
+  output$numeric_input_hyper_2 <- renderUI({
+    if(n_param_prior(ifelse(is.null(input[[ paste0 ("lm_hyper_dist_1")]]) ,hyper_default(input$lm_family_input, 1), input[[ paste0 ("lm_hyper_dist_", 1)]])) == 0) return()
+    lapply(1:n_param_prior(ifelse(is.null(input[[ paste0 ("lm_hyper_dist_2")]]) ,hyper_default(input$lm_family_input, 2), input[[ paste0 ("lm_hyper_dist_", 2)]])), function(n_param){
+      numericInput(inputId = paste0("input_hyper_2_param_", n_param),
+                   label = paste0("Parametro ", n_param),
+                   value = hyper_default_param(input$lm_family_input, 2)[n_param])
     })
   })
   
