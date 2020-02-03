@@ -379,7 +379,7 @@ server <- function(input, output, session){
   })
   
   output$numeric_input_hyper_2 <- renderUI({
-    if(n_param_prior(ifelse(is.null(input[[ paste0 ("lm_hyper_dist_1")]]) ,hyper_default(input$lm_family_input, 1), input[[ paste0 ("lm_hyper_dist_", 1)]])) == 0) return()
+    if(n_param_prior(ifelse(is.null(input[[ paste0 ("lm_hyper_dist_2")]]) ,hyper_default(input$lm_family_input, 2), input[[ paste0 ("lm_hyper_dist_", 2)]])) == 0) return()
     lapply(1:n_param_prior(ifelse(is.null(input[[ paste0 ("lm_hyper_dist_2")]]) ,hyper_default(input$lm_family_input, 2), input[[ paste0 ("lm_hyper_dist_", 2)]])), function(n_param){
       numericInput(inputId = paste0("input_hyper_2_param_", n_param),
                    label = paste0("Parametro ", n_param),
@@ -399,7 +399,7 @@ server <- function(input, output, session){
     
     tabindex(tabindex() + 1)
     output_name <- paste("output_tab", tabindex(), sep = "_")
-    
+
     lm_inla <- list()
     lm_inla_call_print <- list()
     prioris <- matrix(NA_real_, nrow = data_input()$n.variables, ncol = 2)
@@ -407,13 +407,15 @@ server <- function(input, output, session){
       prioris[i,1] <- ifelse("prec1" %in% names(input), input[[ paste0("mean",i) ]], NA_real_)
       prioris[i,2] <- ifelse("prec1" %in% names(input), input[[ paste0("prec",i) ]], NA_real_)
     }
-    
+    browser()
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
                                    data = hot_to_r(input$data),
+                                   family = input$lm_family_input,
                                    control.fixed = control_fixed_input(prioris = prioris,
                                                                        v.names = data_input()$names.variables),
                                    control.compute = control_compute_input,
-                                   control.inla = control_inla_input
+                                   control.inla = control_inla_input,
+                                   control.family = control_family_input(family_input = input$lm_family_input, input)
     )
     lm_inla_call_print[[output_name]] <- paste0("inla(data = ", data_input()$name.file,
                                                 ", formula = ", input$responseVariable,

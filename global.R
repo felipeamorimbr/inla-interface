@@ -22,7 +22,7 @@ control_inla_input <- inla.set.control.inla.default()
 priors_distributions <- names(inla.models()$prior)
 priors_distributions <- priors_distributions[-c(37,38)]
 
-lm_family <- c("normal", "t")
+lm_family <- c("gaussian", "t")
 
 
 menor <- 0

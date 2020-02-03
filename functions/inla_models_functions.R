@@ -29,3 +29,16 @@ hyper_default_param <- function(family, number){
   attr(param, "inla.read.only") <- NULL
   return(param)
 }
+
+control_family_input <- function(family_input, input, ...){
+  n_hyper_input <- n_hyper(family_input)
+  hyper <- list()
+  for(i in 1:n_hyper_input){
+    hyper[[ shortname_hyper(family_input, i) ]] <- list(prior = eval(parse(text = paste0("input$lm_hyper_dist_", n_hyper_input))))
+    for(j in 1:n_param_prior(eval(parse(text = paste0("input$lm_hyper_dist_", n_hyper_input))))){
+      hyper[[ shortname_hyper(family_input, i) ]][["param"]] <- c(hyper[[ shortname_hyper(family_input, i) ]][["param"]],
+                                                                  eval(parse(text = paste0("input$input_hyper_",i,"_param_", j))))
+    }
+  }
+  return(list(hyper))
+}
