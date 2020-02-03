@@ -30,15 +30,18 @@ hyper_default_param <- function(family, number){
   return(param)
 }
 
+#Function that create the input to control.family on INLA
 control_family_input <- function(family_input, input, ...){
+  if(is.null(input$lm_hyper_dist_1)) return(inla.set.control.family.default())
   n_hyper_input <- n_hyper(family_input)
   hyper <- list()
   for(i in 1:n_hyper_input){
-    hyper[[ shortname_hyper(family_input, i) ]] <- list(prior = eval(parse(text = paste0("input$lm_hyper_dist_", n_hyper_input))))
+    hyper[[ shortname_hyper(family_input, i) ]] <- list(prior = noquote(eval(parse(text = paste0("input$lm_hyper_dist_", n_hyper_input)))))
     for(j in 1:n_param_prior(eval(parse(text = paste0("input$lm_hyper_dist_", n_hyper_input))))){
       hyper[[ shortname_hyper(family_input, i) ]][["param"]] <- c(hyper[[ shortname_hyper(family_input, i) ]][["param"]],
                                                                   eval(parse(text = paste0("input$input_hyper_",i,"_param_", j))))
     }
   }
-  return(list(hyper))
+  return(list(hyper = hyper))
 }
+

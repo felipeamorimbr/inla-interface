@@ -420,12 +420,14 @@ server <- function(input, output, session){
     lm_inla_call_print[[output_name]] <- paste0("inla(data = ", data_input()$name.file,
                                                 ", formula = ", input$responseVariable,
                                                 " ~ ", paste0(input$covariates, collapse = " + "),
+                                                ifelse(input$lm_family_input == "gaussian", "", paste0(", family = ",'"' ,  input$lm_family_input), '"'),
                                                 ifelse(all(is.na(prioris)), "", paste0(", control.fixed = ",
                                                                                        list_call(control_fixed_input(prioris = prioris,
                                                                                                                      v.names = data_input()$names.variables))))
                                                 ,
                                                 ifelse(identical(paste0(input$ok_btn_options_modal), character(0)), "",
-                                                       paste0(", control.compe = ", list_call(control_compute_input))),")"
+                                                       paste0(", control.compe = ", list_call(control_compute_input))),
+                                                ")"
     )
     output[[output_name]] <- renderPrint({
       lm_inla[[output_name]]$call <- lm_inla_call_print[[output_name]]
