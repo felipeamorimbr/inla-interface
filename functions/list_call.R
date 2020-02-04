@@ -1,6 +1,7 @@
 #Function that recive a list and returns call used to make the list
 list_call <- function(data = list()){
-  return(noquote(eval(call("paste0",  call("list", data) , collapse = ""))))
+  data <- noquote(data)
+  return(eval(call("paste0",  call("list", data) , collapse = "")))
 }
 
 #Testing

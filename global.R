@@ -11,6 +11,7 @@ source("functions/file_ext.R")
 source("functions/control_fixed_input.R")
 source("functions/list_call.R")
 source("functions/inla_models_functions.R")
+source("functions/check_if_is_different.R")
 
 
 accetable_formats <- c("csv", "txt")

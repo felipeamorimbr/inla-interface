@@ -407,7 +407,7 @@ server <- function(input, output, session){
       prioris[i,1] <- ifelse("prec1" %in% names(input), input[[ paste0("mean",i) ]], NA_real_)
       prioris[i,2] <- ifelse("prec1" %in% names(input), input[[ paste0("prec",i) ]], NA_real_)
     }
-    browser()
+   
     lm_inla[[output_name]] <- inla(formula = inla.formula(),     ## Atualizando o escopo global
                                    data = hot_to_r(input$data),
                                    family = input$lm_family_input,
@@ -417,19 +417,21 @@ server <- function(input, output, session){
                                    control.inla = control_inla_input,
                                    control.family = control_family_input(family_input = input$lm_family_input, input)
     )
+    browser()
     lm_inla_call_print[[output_name]] <- paste0("inla(data = ", data_input()$name.file,
                                                 ", formula = ", input$responseVariable,
                                                 " ~ ", paste0(input$covariates, collapse = " + "),
-                                                ifelse(input$lm_family_input == "gaussian", "", paste0(", family = ",'"' ,  input$lm_family_input), '"'),
+                                                ifelse(input$lm_family_input == "gaussian", "", noquote(paste0(", family = ",'"' ,  input$lm_family_input, '"'))),
                                                 ifelse(all(is.na(prioris)), "", paste0(", control.fixed = ",
                                                                                        list_call(control_fixed_input(prioris = prioris,
                                                                                                                      v.names = data_input()$names.variables))))
                                                 ,
                                                 ifelse(identical(paste0(input$ok_btn_options_modal), character(0)), "",
                                                        paste0(", control.compe = ", list_call(control_compute_input))),
+                                                ifelse(checking_control_family(input) , '', paste0(", control.family = ", list_call(control_family_input(family_input = input$lm_family_input, input)))),
                                                 ")"
     )
-    output[[output_name]] <- renderPrint({
+    output[[output_name]] <- renderPrint(quoted = T,{
       lm_inla[[output_name]]$call <- lm_inla_call_print[[output_name]]
       summary(lm_inla[[output_name]]) ## Da pra jogar o teu Call aqui dentro
       
