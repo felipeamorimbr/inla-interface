@@ -6,6 +6,7 @@ library(INLA)
 library(rhandsontable)
 library(shinyWidgets)
 library(DT)
+library(shinydashboard)
 
 source("functions/file_ext.R")
 source("functions/control_fixed_input.R")
@@ -24,10 +25,3 @@ priors_distributions <- names(inla.models()$prior)
 priors_distributions <- priors_distributions[-c(37,38)]
 
 lm_family <- c("gaussian", "t")
-
-
-menor <- 0
-for(i in 1:64){
-  if(menor <= n_hyper(inla.models()$likelihood[[i]]$pdf))
-    menor <- n_hyper(inla.models()$likelihood[[i]]$pdf)
-}
