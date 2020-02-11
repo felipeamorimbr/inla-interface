@@ -509,7 +509,7 @@ server <- function(input, output, session) {
     # Create values to the result of the model and the edited call of the model
     lm_inla <- list()
     lm_inla_call_print <- list()
-
+    
     # Created the model according to user input
     lm_inla[[output_name]] <- inla(
       formula = inla.formula(),
@@ -521,7 +521,7 @@ server <- function(input, output, session) {
       ),
       control.compute = control_compute_input,
       control.inla = control_inla_input,
-      control.family = control_family_input(family_input = input$lm_family_input, input)
+      control.family = control_family_input(input)
     )
 
     # Create the new call to the model
@@ -553,32 +553,39 @@ server <- function(input, output, session) {
         useShinyjs(),
         fluidRow(
           column(
-            width = 9,
+            width = 6,
             box(
               title = "Call",
               status = "primary",
               solidHeader = TRUE,
-              width = 9,
+              width = 12,
               textOutput(outputId = paste0("lm_call", tabindex())),
-              tags$b(tags$a(icon("code"), "Show code", `data-toggle`="collapse", href="#showcode_dropdown")),
+              tags$b(tags$a(icon("code"), "Show code", `data-toggle`="collapse", href="#showcode_call")),
               tags$div(
-                class="collapse", id="showcode_dropdown",
+                class="collapse", id="showcode_call",
                 tags$code(class = "language-r", 
-                    paste0("dat <- ", '"', input$file$name, '"'),
-                    tags$br(),
-                    paste0("lm_inla_",tabindex()), " <- ",  lm_inla_call_print[[output_name]],
-                    tags$br(),
-                    paste0("lm_inla_",tabindex(), "$call")
+                          paste0("dat <- ", '"', input$file$name, '"'),
+                          tags$br(),
+                          paste0("lm_inla_",tabindex()), " <- ",  lm_inla_call_print[[output_name]],
+                          tags$br(),
+                          paste0("lm_inla_",tabindex(), "$call")
                 )
               )
             )
           ),
-          column(width = 3,
+          column(width = 6,
                  box(
                    title = "Time Used",
+                   status = "primary",
                    solidHeader = TRUE,
-                   width = 3, #CHANGE TO TABLE OUTPUT
-                   Output(outputId = paste0("lm_time_used_", tabindex()))
+                   width = 12, 
+                   dataTableOutput(outputId = paste0("lm_time_used_", tabindex())),
+                   tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href="#showcode_time")),
+                   tags$div(
+                     class = "collapse", id="showcode_time",
+                     tags$code(class = "language-r",
+                               paste0("teste"))
+                   )
                  ))
         )
       )
@@ -592,8 +599,18 @@ server <- function(input, output, session) {
     })
     
     # Time Used
-    output[[ paste0("lm_time_used_", tabindex()) ]] <- renderText({
-      lm_inla[[output_name]][["cpu.used"]]
+    output[[ paste0("lm_time_used_", tabindex()) ]] <- renderDataTable({
+      data_time_used <- lm_inla[[output_name]][["cpu.used"]] %>% 
+        t() %>%
+        as.data.frame(row.names = c("Time")) %>% 
+        round(digits = 5)
+        
+      DT::datatable(data = data_time_used,
+                    options = list(
+                      paging = FALSE,
+                      searching = FALSE,
+                      pageLength = 5
+                    ))
     })
   })
 }
