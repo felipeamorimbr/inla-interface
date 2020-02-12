@@ -509,7 +509,7 @@ server <- function(input, output, session) {
     # Create values to the result of the model and the edited call of the model
     lm_inla <- list()
     lm_inla_call_print <- list()
-    
+
     # Created the model according to user input
     lm_inla[[output_name]] <- inla(
       formula = inla.formula(),
@@ -555,62 +555,177 @@ server <- function(input, output, session) {
           column(
             width = 6,
             box(
+              id = paste0("call_", tabindex()),
               title = "Call",
               status = "primary",
               solidHeader = TRUE,
               width = 12,
               textOutput(outputId = paste0("lm_call", tabindex())),
-              tags$b(tags$a(icon("code"), "Show code", `data-toggle`="collapse", href="#showcode_call")),
+              tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_call", tabindex()))),
               tags$div(
-                class="collapse", id="showcode_call",
-                tags$code(class = "language-r", 
-                          paste0("dat <- ", '"', input$file$name, '"'),
-                          tags$br(),
-                          paste0("lm_inla_",tabindex()), " <- ",  lm_inla_call_print[[output_name]],
-                          tags$br(),
-                          paste0("lm_inla_",tabindex(), "$call")
+                class = "collapse", id = paste0("showcode_call", tabindex()),
+                tags$code(
+                  class = "language-r",
+                  paste0("dat <- ", '"', input$file$name, '"'),
+                  tags$br(),
+                  paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
+                  tags$br(),
+                  paste0("lm_inla_", tabindex(), "$call")
                 )
               )
             )
           ),
-          column(width = 6,
-                 box(
-                   title = "Time Used",
-                   status = "primary",
-                   solidHeader = TRUE,
-                   width = 12, 
-                   dataTableOutput(outputId = paste0("lm_time_used_", tabindex())),
-                   tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href="#showcode_time")),
-                   tags$div(
-                     class = "collapse", id="showcode_time",
-                     tags$code(class = "language-r",
-                               paste0("teste"))
-                   )
-                 ))
+          column(
+            width = 6,
+            box(
+              id = paste0("time_used", tabindex()),
+              title = "Time Used",
+              status = "primary",
+              solidHeader = TRUE,
+              width = 12,
+              dataTableOutput(outputId = paste0("lm_time_used_", tabindex())),
+              tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_time", tabindex()))),
+              tags$div(
+                class = "collapse", id = paste0("showcode_time", tabindex()),
+                tags$code(
+                  class = "language-r",
+                  paste0("dat <- ", '"', input$file$name, '"'),
+                  tags$br(),
+                  paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
+                  tags$br(),
+                  paste0("lm_inla_", tabindex(), "$cpu.sued")
+                )
+              )
+            )
+          )
+        ), #fluidrow ends here
+        fluidRow(
+          column(
+            width = 6,
+            box(
+              id = paste0("fix_effects_", tabindex()),
+              title = "Fixed Effects",
+              status = "primary",
+              solidHeader = TRUE,
+              width = 12,
+              dataTableOutput(outputId = paste0("lm_fix_effects_", tabindex())),
+              tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", tabindex()))),
+              tags$div(
+                class = "collapse", id = paste0("showcode_fix_effects_", tabindex()),
+                tags$code(
+                  class = "language-r",
+                  paste0("dat <- ", '"', input$file$name, '"'),
+                  tags$br(),
+                  paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
+                  tags$br(),
+                  paste0("lm_inla_", tabindex(), "$summary.fixed")
+                )
+              )
+            )
+          ),
+          column(
+            width = 6,
+            fluidRow(
+              box(
+                id = paste0("model_hyper_", tabindex()),
+                title = "Model Hyperparameters",
+                status = "primary",
+                solidHeader = TRUE,
+                width = 12,
+                dataTableOutput(outputId = paste0("lm_model_hyper_", tabindex())),
+                tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", tabindex()))),
+                tags$div(
+                  class = "collapse", id = paste0("showcode_model_hyper_", tabindex()),
+                  tags$code(
+                    class = "language-r",
+                    paste0("dat <- ", '"', input$file$name, '"'),
+                    tags$br(),
+                    paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
+                    tags$br(),
+                    paste0("lm_inla_", tabindex(), "$summary.hyperpar")
+                  )
+                )
+              ),
+              box(
+                id = paste0("others"),
+                title = "Others",
+                status = "primary",
+                solidHeader = TRUE,
+                width = 4,
+                dataTableOutput(outputId = paste0("lm_others_", tabindex())),
+                tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_others_", tabindex()))),
+                tags$div(
+                  class = "collapse", id = paste0("showcode_others_", tabindex()),
+                  tags$code(
+                    class = "language-r",
+                    paste0("dat <- ", '"', input$file$name, '"'),
+                    tags$br(),
+                    paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
+                    tags$br(),
+                    paste0("lm_inla_", tabindex(), "$neffp")
+                  )
+                )
+              )
+            )
+          )
         )
       )
     )
 
     # "Server" of result tab
-    
+
     # Call
     output[[ paste0("lm_call", tabindex()) ]] <- renderText({
       lm_inla_call_print[[output_name]]
     })
-    
+
     # Time Used
     output[[ paste0("lm_time_used_", tabindex()) ]] <- renderDataTable({
-      data_time_used <- lm_inla[[output_name]][["cpu.used"]] %>% 
+      data_time_used <- lm_inla[[output_name]][["cpu.used"]] %>%
         t() %>%
-        as.data.frame(row.names = c("Time")) %>% 
+        as.data.frame(row.names = c("Time")) %>%
         round(digits = 5)
-        
-      DT::datatable(data = data_time_used,
-                    options = list(
-                      paging = FALSE,
-                      searching = FALSE,
-                      pageLength = 5
-                    ))
+
+        DT::datatable(
+        data = data_time_used,
+        options = list(
+          dom = "t",
+          pageLength = 5
+        )
+      )
     })
+    
+    #Fixed Effects
+    output[[ paste0("lm_fix_effects_", tabindex())]] <- renderDataTable({
+      lm_inla[[output_name]][["summary.fixed"]] %>%
+        round(digits = 5)
+    },
+    options = list(
+      paging = FALSE,
+      dom = "t"
+    )
+    )
+    
+    #Model Hyper
+    output[[ paste0("lm_model_hyper_", tabindex())]] <- renderDataTable({
+      lm_inla[[output_name]][["summary.hyperpar"]] %>%
+        round(digits = 5)
+    },
+    options = list(
+      dom = "t",
+      paging = FALSE
+    )
+    )
+    
+    #Others (neffp)
+    output[[ paste0("lm_others_", tabindex())]] <- renderDataTable({
+      lm_inla[[output_name]][["neffp"]] %>%
+        round(digits = 5)
+    },
+    options = list(
+      dom = "t",
+      paging = FALSE
+    )
+    )
   })
 }
