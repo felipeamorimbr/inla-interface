@@ -120,8 +120,8 @@ server <- function(input, output, session) {
       return.marginals = input$ccompute_input_3,
       dic = input$ccompute_input_4,
       mlik = input$ccompute_input_5,
-      cpo = input$ccompute_input_6,
-      po = input$ccompute_input_7,
+      cpo = input$ccompute_input_4,
+      po = FALSE,
       waic = input$ccompute_input_8,
       q = input$ccompute_input_9,
       config = input$ccompute_input_10,
@@ -179,7 +179,7 @@ server <- function(input, output, session) {
             )),
             fluidRow(checkboxInput(
               inputId = "ccompute_input_4",
-              label = "Calcular o valor-DIC",
+              label = "Calcular o valor-DIC e CPO",
               value = globalenv()$control_compute_input[[4]]
             )),
             fluidRow(checkboxInput(
@@ -187,16 +187,16 @@ server <- function(input, output, session) {
               label = "Calcular as marginais da Verssimilhança",
               value = control_compute_input[[5]]
             )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_6",
-              label = "Calcular o CPO",
-              value = control_compute_input[[6]]
-            )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_7",
-              label = "Calcular a preditive ordinate",
-              value = control_compute_input[[7]]
-            )),
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_6",
+            #   label = "Calcular o CPO",
+            #   value = control_compute_input[[6]]
+            # )),
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_7",
+            #   label = "Calcular a preditive ordinate",
+            #   value = control_compute_input[[7]]
+            # )),
             fluidRow(checkboxInput(
               inputId = "ccompute_input_8",
               label = "Calcular o WAIC",
@@ -493,6 +493,7 @@ server <- function(input, output, session) {
   # What happens after the user clicks in ok to make the model
   tabindex <- reactiveVal(0)
   observeEvent(input$lm_ok, {
+    useShinyjs()
     # Close the modal with lm options
     removeModal()
 
@@ -543,7 +544,7 @@ server <- function(input, output, session) {
       ifelse(checking_control_family(input), "", paste0(", control.family = ", list_call(control_family_input(family_input = input$lm_family_input, input)))),
       ")"
     )
-    
+
     # UI of the result tab
     appendTab(
       inputId = "mytabs", select = TRUE,
@@ -555,7 +556,7 @@ server <- function(input, output, session) {
           column(
             width = 6,
             box(
-              id = paste0("call_", tabindex()),
+              id = paste0("lm_box_call_", tabindex()),
               title = "Call",
               status = "primary",
               solidHeader = TRUE,
@@ -578,7 +579,7 @@ server <- function(input, output, session) {
           column(
             width = 6,
             box(
-              id = paste0("time_used", tabindex()),
+              id = paste0("lm_box_time_used", tabindex()),
               title = "Time Used",
               status = "primary",
               solidHeader = TRUE,
@@ -598,12 +599,12 @@ server <- function(input, output, session) {
               )
             )
           )
-        ), #fluidrow ends here
+        ), # fluidrow ends here
         fluidRow(
           column(
             width = 6,
             box(
-              id = paste0("fix_effects_", tabindex()),
+              id = paste0("lm_box_fix_effects_", tabindex()),
               title = "Fixed Effects",
               status = "primary",
               solidHeader = TRUE,
@@ -625,9 +626,12 @@ server <- function(input, output, session) {
           ),
           column(
             width = 6,
+            useShinyjs(),
             fluidRow(
+              conditionalPanel(
+                condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
               box(
-                id = paste0("model_hyper_", tabindex()),
+                id = paste0("lm_box_model_hyper_", tabindex()),
                 title = "Model Hyperparameters",
                 status = "primary",
                 solidHeader = TRUE,
@@ -645,13 +649,14 @@ server <- function(input, output, session) {
                     paste0("lm_inla_", tabindex(), "$summary.hyperpar")
                   )
                 )
+              )
               ),
               box(
-                id = paste0("others"),
+                id = paste0("lm_box_others_", tabindex()),
                 title = "Others",
                 status = "primary",
                 solidHeader = TRUE,
-                width = 4,
+                width = 12,
                 dataTableOutput(outputId = paste0("lm_others_", tabindex())),
                 tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_others_", tabindex()))),
                 tags$div(
@@ -686,7 +691,7 @@ server <- function(input, output, session) {
         as.data.frame(row.names = c("Time")) %>%
         round(digits = 5)
 
-        DT::datatable(
+      DT::datatable(
         data = data_time_used,
         options = list(
           dom = "t",
@@ -694,38 +699,61 @@ server <- function(input, output, session) {
         )
       )
     })
+
+    # Fixed Effects
+    output[[ paste0("lm_fix_effects_", tabindex())]] <- renderDataTable(
+      {
+        lm_inla[[output_name]][["summary.fixed"]] %>%
+          round(digits = 5)
+      },
+      options = list(
+        paging = FALSE,
+        dom = "t"
+      )
+    )
+
+    # Model Hyper
+    if(!(is.null(input$c.compute_input_2)) && (input$c.compute_input_2 == FALSE)){
+      shinyjs::hide(id = paste0("lm_box_model_hyper_", tabindex()),
+                           anim = FALSE
+                           )
+    }else{
+    output[[ paste0("lm_model_hyper_", tabindex())]] <- renderDataTable(
+      {
+        lm_inla[[output_name]][["summary.hyperpar"]] %>%
+          round(digits = 5)
+      },
+      options = list(
+        dom = "t",
+        paging = FALSE
+      )
+    )
+    }
+    # Others (neffp)
+    output[[ paste0("lm_others_", tabindex())]] <- renderDataTable(
+      {
+        lm_inla[[output_name]][["neffp"]] %>%
+          round(digits = 5)
+      },
+      options = list(
+        dom = "t",
+        paging = FALSE
+      )
+    )
     
-    #Fixed Effects
-    output[[ paste0("lm_fix_effects_", tabindex())]] <- renderDataTable({
-      lm_inla[[output_name]][["summary.fixed"]] %>%
-        round(digits = 5)
-    },
-    options = list(
-      paging = FALSE,
-      dom = "t"
-    )
-    )
-    
-    #Model Hyper
-    output[[ paste0("lm_model_hyper_", tabindex())]] <- renderDataTable({
-      lm_inla[[output_name]][["summary.hyperpar"]] %>%
-        round(digits = 5)
-    },
-    options = list(
-      dom = "t",
-      paging = FALSE
-    )
-    )
-    
-    #Others (neffp)
-    output[[ paste0("lm_others_", tabindex())]] <- renderDataTable({
-      lm_inla[[output_name]][["neffp"]] %>%
-        round(digits = 5)
-    },
-    options = list(
-      dom = "t",
-      paging = FALSE
-    )
+    # Devicance Information Criterion (DIC)
+    output[[ paste0("lm_dic_", tabindex())]] <- renderDataTable(
+      {
+        data.frame(
+          "DIC" = lm_inla[[output_name]][["dic"]][["dic"]],
+          "DIC Saturated" = lm_inla[[output_name]][["dic"]][["dic.sat"]],
+          "Effective Number of Parameters" = lm_inla[[output_name]][["dic"]][["p.eff"]]
+        )
+      },
+      options = list(
+        dom = "t",
+        paging = FALSE
+      )
     )
   })
 }
