@@ -120,9 +120,9 @@ server <- function(input, output, session) {
       return.marginals = input$ccompute_input_3,
       dic = input$ccompute_input_4,
       mlik = input$ccompute_input_5,
-      cpo = input$ccompute_input_4,
-      po = FALSE,
-      waic = input$ccompute_input_8,
+      cpo = input$ccompute_input_6,
+      po = input$ccompute_input_7,
+      waic = input$ccompute_input_4,
       q = input$ccompute_input_9,
       config = input$ccompute_input_10,
       smtp = input$ccompute_input_11,
@@ -179,7 +179,7 @@ server <- function(input, output, session) {
             )),
             fluidRow(checkboxInput(
               inputId = "ccompute_input_4",
-              label = "Calcular o valor-DIC e CPO",
+              label = "Calcular o valor-DIC e WAIC",
               value = globalenv()$control_compute_input[[4]]
             )),
             fluidRow(checkboxInput(
@@ -187,21 +187,21 @@ server <- function(input, output, session) {
               label = "Calcular as marginais da Verssimilhança",
               value = control_compute_input[[5]]
             )),
-            # fluidRow(checkboxInput(
-            #   inputId = "ccompute_input_6",
-            #   label = "Calcular o CPO",
-            #   value = control_compute_input[[6]]
-            # )),
-            # fluidRow(checkboxInput(
-            #   inputId = "ccompute_input_7",
-            #   label = "Calcular a preditive ordinate",
-            #   value = control_compute_input[[7]]
-            # )),
             fluidRow(checkboxInput(
-              inputId = "ccompute_input_8",
-              label = "Calcular o WAIC",
-              value = control_compute_input[[8]]
+              inputId = "ccompute_input_6",
+              label = "Calcular o CPO",
+              value = control_compute_input[[6]]
             )),
+            fluidRow(checkboxInput(
+              inputId = "ccompute_input_7",
+              label = "Calcular a preditive ordinate",
+              value = control_compute_input[[7]]
+            )),
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_8",
+            #   label = "Calcular o WAIC",
+            #   value = control_compute_input[[8]]
+            # )),
             fluidRow(checkboxInput(
               inputId = "ccompute_input_9",
               label = "Gerar as imagens da matriz de precição, matriz de precição reordenada
@@ -345,6 +345,13 @@ server <- function(input, output, session) {
           uiOutput("uiCovariates")
         ),
         fluidRow(
+          checkboxInput(
+            inputId = "lm_intercept",
+            label = "Intercept",
+            value = TRUE
+          )
+        ),
+        fluidRow(
           title = "Selecione a família",
           selectInput(
             inputId = "lm_family_input",
@@ -484,10 +491,11 @@ server <- function(input, output, session) {
   })
 
   # Create the input of the fomula used on inla funtion
-  inla.formula <- eventReactive(c(input$responseVariable, input$covariates), {
+  inla.formula <- eventReactive(c(input$responseVariable, input$covariates, input$lm_intercept), {
+    intercept <- ifelse(input$lm_intercept, "", " -1 +")
     f.covariates <- paste0(input$covariates, collapse = "+")
     f.response <- paste0(input$responseVariable)
-    as.formula(paste0(f.response, rawToChar(as.raw(126)), f.covariates))
+    as.formula(paste0(f.response, rawToChar(as.raw(126)), intercept, f.covariates))
   })
 
   # What happens after the user clicks in ok to make the model
@@ -496,7 +504,7 @@ server <- function(input, output, session) {
     useShinyjs()
     # Close the modal with lm options
     removeModal()
-
+  
     # Count the number of tabs
     tabindex(tabindex() + 1)
     output_name <- paste("output_tab", tabindex(), sep = "_")
@@ -529,7 +537,7 @@ server <- function(input, output, session) {
     lm_inla_call_print[[output_name]] <- paste0(
       "inla(data = ", "dat",
       ", formula = ", '"', input$responseVariable,
-      " ~ ", paste0(input$covariates, collapse = " + "), '"',
+      " ~ ", ifelse(input$lm_intercept, "", "-1 + "), paste0(input$covariates, collapse = " + "), '"',
       ifelse(input$lm_family_input == "gaussian", "", noquote(paste0(", family = ", '"', input$lm_family_input, '"'))),
       ifelse(all(is.na(prioris)), "", paste0(
         ", control.fixed = ",
@@ -602,7 +610,7 @@ server <- function(input, output, session) {
         ), # fluidrow ends here
         fluidRow(
           column(
-            width = 6,
+            width = 12,
             box(
               id = paste0("lm_box_fix_effects_", tabindex()),
               title = "Fixed Effects",
@@ -625,7 +633,7 @@ server <- function(input, output, session) {
             )
           ),
           column(
-            width = 6,
+            width = 12,
             useShinyjs(),
             fluidRow(
               conditionalPanel(
@@ -635,7 +643,7 @@ server <- function(input, output, session) {
                 title = "Model Hyperparameters",
                 status = "primary",
                 solidHeader = TRUE,
-                width = 12,
+                width = 6,
                 dataTableOutput(outputId = paste0("lm_model_hyper_", tabindex())),
                 tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", tabindex()))),
                 tags$div(
@@ -656,7 +664,7 @@ server <- function(input, output, session) {
                 title = "Others",
                 status = "primary",
                 solidHeader = TRUE,
-                width = 12,
+                width = 6,
                 dataTableOutput(outputId = paste0("lm_others_", tabindex())),
                 tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_others_", tabindex()))),
                 tags$div(
@@ -668,6 +676,33 @@ server <- function(input, output, session) {
                     paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
                     tags$br(),
                     paste0("lm_inla_", tabindex(), "$neffp")
+                  )
+                )
+              ),
+              conditionalPanel(
+                condition = "(input.ccompute_input_4 != '' &&  input.ccompute_input_4 == true)",
+                box(
+                  id = paste0("lm_box_dic_waic_", tabindex()),
+                  title = "DIC and WAIC",
+                  status = "primary",
+                  solidHeader = TRUE,
+                  width = 6,
+                  dataTableOutput(outputId = paste0("lm_dic_waic_", tabindex())),
+                  tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", tabindex()))),
+                  tags$div(
+                    class = "collapse", id = paste0("showcode_dic_waic_", tabindex()),
+                    tags$code(
+                      class = "language-r",
+                      paste0("dat <- ", '"', input$file$name, '"'),
+                      tags$br(),
+                      paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
+                      tags$br(),
+                      paste0("lm_inla_", tabindex(), "$dic$dic"),
+                      tags$br(),
+                      paste0("lm_inla", tabindex(), "$dic$dic.sat"),
+                      tags$br(),
+                      paste0("lm_inla", tabindex(), "$dic$p.eff")
+                    )
                   )
                 )
               )
@@ -713,11 +748,6 @@ server <- function(input, output, session) {
     )
 
     # Model Hyper
-    if(!(is.null(input$c.compute_input_2)) && (input$c.compute_input_2 == FALSE)){
-      shinyjs::hide(id = paste0("lm_box_model_hyper_", tabindex()),
-                           anim = FALSE
-                           )
-    }else{
     output[[ paste0("lm_model_hyper_", tabindex())]] <- renderDataTable(
       {
         lm_inla[[output_name]][["summary.hyperpar"]] %>%
@@ -728,7 +758,7 @@ server <- function(input, output, session) {
         paging = FALSE
       )
     )
-    }
+    
     # Others (neffp)
     output[[ paste0("lm_others_", tabindex())]] <- renderDataTable(
       {
@@ -742,13 +772,23 @@ server <- function(input, output, session) {
     )
     
     # Devicance Information Criterion (DIC)
-    output[[ paste0("lm_dic_", tabindex())]] <- renderDataTable(
+    output[[ paste0("lm_dic_waic_", tabindex())]] <- renderDataTable(
       {
-        data.frame(
-          "DIC" = lm_inla[[output_name]][["dic"]][["dic"]],
-          "DIC Saturated" = lm_inla[[output_name]][["dic"]][["dic.sat"]],
-          "Effective Number of Parameters" = lm_inla[[output_name]][["dic"]][["p.eff"]]
+        lm_dic_waic_matrix <- matrix(
+          c(
+          lm_inla[[output_name]][["dic"]][["dic"]],
+          lm_inla[[output_name]][["dic"]][["dic.sat"]],
+          lm_inla[[output_name]][["dic"]][["p.eff"]],
+          lm_inla[[output_name]][["waic"]][["waic"]],
+          lm_inla[[output_name]][["waic"]][["p.eff"]]),
+          ncol = 1, nrow = 5
+        ) %>%
+          round(digits = 5)
+        rownames(lm_dic_waic_matrix) <- c(
+          "DIC", "DIC Saturated", "Effective number of parameters (DIC)",
+          "WAIC", "Effective number of parameters (WAIC)"
         )
+        lm_dic_waic_matrix
       },
       options = list(
         dom = "t",
