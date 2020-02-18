@@ -504,7 +504,7 @@ server <- function(input, output, session) {
     useShinyjs()
     # Close the modal with lm options
     removeModal()
-  
+
     # Count the number of tabs
     tabindex(tabindex() + 1)
     output_name <- paste("output_tab", tabindex(), sep = "_")
@@ -638,37 +638,37 @@ server <- function(input, output, session) {
             fluidRow(
               conditionalPanel(
                 condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
-              box(
-                id = paste0("lm_box_model_hyper_", tabindex()),
-                title = "Model Hyperparameters",
-                status = "primary",
-                solidHeader = TRUE,
-                width = 6,
-                dataTableOutput(outputId = paste0("lm_model_hyper_", tabindex())),
-                tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", tabindex()))),
-                tags$div(
-                  class = "collapse", id = paste0("showcode_model_hyper_", tabindex()),
-                  tags$code(
-                    class = "language-r",
-                    paste0("dat <- ", '"', input$file$name, '"'),
-                    tags$br(),
-                    paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
-                    tags$br(),
-                    paste0("lm_inla_", tabindex(), "$summary.hyperpar")
+                box(
+                  id = paste0("lm_box_model_hyper_", tabindex()),
+                  title = "Model Hyperparameters",
+                  status = "primary",
+                  solidHeader = TRUE,
+                  width = 6,
+                  dataTableOutput(outputId = paste0("lm_model_hyper_", tabindex())),
+                  tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", tabindex()))),
+                  tags$div(
+                    class = "collapse", id = paste0("showcode_model_hyper_", tabindex()),
+                    tags$code(
+                      class = "language-r",
+                      paste0("dat <- ", '"', input$file$name, '"'),
+                      tags$br(),
+                      paste0("lm_inla_", tabindex()), " <- ", lm_inla_call_print[[output_name]],
+                      tags$br(),
+                      paste0("lm_inla_", tabindex(), "$summary.hyperpar")
+                    )
                   )
                 )
-              )
               ),
               box(
-                id = paste0("lm_box_others_", tabindex()),
-                title = "Others",
+                id = paste0("lm_box_neffp_", tabindex()),
+                title = "Expected Effective Number of Parameters in the Model",
                 status = "primary",
                 solidHeader = TRUE,
                 width = 6,
-                dataTableOutput(outputId = paste0("lm_others_", tabindex())),
-                tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_others_", tabindex()))),
+                dataTableOutput(outputId = paste0("lm_neffp_", tabindex())),
+                tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_neffp_", tabindex()))),
                 tags$div(
-                  class = "collapse", id = paste0("showcode_others_", tabindex()),
+                  class = "collapse", id = paste0("showcode_neffp_", tabindex()),
                   tags$code(
                     class = "language-r",
                     paste0("dat <- ", '"', input$file$name, '"'),
@@ -758,37 +758,34 @@ server <- function(input, output, session) {
         paging = FALSE
       )
     )
-    
+    browser()
     # Others (neffp)
-    output[[ paste0("lm_others_", tabindex())]] <- renderDataTable(
+    output[[ paste0("lm_neffp_", tabindex())]] <- renderDataTable(
       {
-        lm_inla[[output_name]][["neffp"]] %>%
+        lm_neffp_dataframe <- lm_inla[[output_name]][["neffp"]] %>%
           round(digits = 5)
+        colnames(lm_neffp_dataframe) <- "Expected Value"
+        lm_neffp_dataframe
       },
       options = list(
         dom = "t",
         paging = FALSE
       )
     )
-    
+
     # Devicance Information Criterion (DIC)
     output[[ paste0("lm_dic_waic_", tabindex())]] <- renderDataTable(
       {
-        lm_dic_waic_matrix <- matrix(
-          c(
-          lm_inla[[output_name]][["dic"]][["dic"]],
-          lm_inla[[output_name]][["dic"]][["dic.sat"]],
-          lm_inla[[output_name]][["dic"]][["p.eff"]],
-          lm_inla[[output_name]][["waic"]][["waic"]],
-          lm_inla[[output_name]][["waic"]][["p.eff"]]),
-          ncol = 1, nrow = 5
+        data.frame(
+          "DIC" = lm_inla[[output_name]][["dic"]][["dic"]],
+          "DIC Saturated" = lm_inla[[output_name]][["dic"]][["dic.sat"]],
+          "Effective number of parameters (DIC)" = lm_inla[[output_name]][["dic"]][["p.eff"]],
+          "WAIC" = lm_inla[[output_name]][["waic"]][["waic"]],
+          "Effective number of parameters (WAIC)" = lm_inla[[output_name]][["waic"]][["p.eff"]],
+          row.names = "Expected Value"
         ) %>%
-          round(digits = 5)
-        rownames(lm_dic_waic_matrix) <- c(
-          "DIC", "DIC Saturated", "Effective number of parameters (DIC)",
-          "WAIC", "Effective number of parameters (WAIC)"
-        )
-        lm_dic_waic_matrix
+          round(digits = 5) %>%
+          t()
       },
       options = list(
         dom = "t",
