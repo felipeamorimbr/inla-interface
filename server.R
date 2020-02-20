@@ -142,6 +142,7 @@ server <- function(input, output, session) {
 
   observeEvent(input$options_action_btn, {
     options_modal <- modalDialog( ## -- DOUGLAS: Criando o modal aqui dentro. Desta forma ele vai ser recriado toda vez que clicar em opções
+      useShinyjs(),
       title = "Opções",
       fade = FALSE,
       size = "l",
@@ -315,7 +316,7 @@ server <- function(input, output, session) {
       )
     }
   })
-
+  
   ## -- Main Panel ----
   ## -- Table with Data ----
   observeEvent(input$file_load_btn, {
@@ -413,19 +414,23 @@ server <- function(input, output, session) {
       )
     )
   })
-
+  
+  # lm_covariates_selected <- eventReactive(c(input$responseVariable, input$covariates, input$lm_intercept){
+  #   
+  # })
+  
   output$uiPrioriMean <- renderUI({ # Generate the input boxes for the mean
     if (is.null(data_input()$n.variables)) {
       return()
     } # according to the number of columns of input file
-
-    Rows <- lapply(1:data_input()$n.variables, function(number) {
+    lapply(1:data_input()$n.variables, function(number) {
       fluidRow(
-        column(6, numericInput(
-          inputId = paste0("mean", number),
+        column(6, shinyjs::hidden(numericInput(
+          inputId = ifelse(number == 1, paste0("mean1"), paste0("mean", data_input()$names.variables[number])),
           label = paste0("mean", data_input()$names.variables[number]),
-          value = character(0)
+          value = 0
         ))
+        )
       )
     })
   })
@@ -434,18 +439,32 @@ server <- function(input, output, session) {
     if (is.null(data_input()$n.variables)) {
       return()
     }
-
-    Rows <- lapply(1:data_input()$n.variables, function(number) {
+      lapply(1:data_input()$n.variables, function(number) {
       fluidRow(
         column(6, numericInput(
-          inputId = paste0("prec", number),
+          inputId = ifelse(number == 1, paste0("prec1"), paste0("prec", data_input()$names.variables[number])),
           label = paste0("prec", data_input()$names.variables[number]),
-          value = character(0)
+          value = ifelse(number == 1, 0.001, 0)
         ))
       )
     })
   })
 
+  observe({
+    shinyjs::toggle(id = "mean1", condition = input$lm_intercept)
+    shinyjs::toggle(id = "prec1", condition = input$lm_intercept)
+    
+  })
+  
+  # observeEvent(c(input$responseVariable, input$covariates, input$lm_intercept), {
+  #   for(i in 1:data_input()$n.variables){
+  #     if((i == 1) && (input$lm_intercept == FALSE)){
+  #       shinyjs::hideElement(id = input[[ paste0("mean", i) ]], anim = FALSE)
+  #       shinyjs::hideElement(id = input[[ paste0("prec", i) ]], anim = FALSE)
+  #     }
+  #   }
+  # })
+  
   # Create the UI with options to user select hyper priors distributions
   output$ui_hyper_prior <- renderUI({
     lapply(1:n_hyper(input$lm_family_input), function(number) {
