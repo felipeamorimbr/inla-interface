@@ -121,11 +121,11 @@ server <- function(input, output, session) {
       openmp.strategy = input$ccompute_input_1,
       hyperpar = input$ccompute_input_2,
       return.marginals = input$ccompute_input_3,
-      dic = input$ccompute_input_4
+      dic = input$ccompute_input_4,
       # mlik = input$ccompute_input_5,
       # cpo = input$ccompute_input_6,
       # po = input$ccompute_input_7,
-      # waic = input$ccompute_input_4,
+      waic = input$ccompute_input_4
       # q = input$ccompute_input_9,
       # config = input$ccompute_input_10,
       # smtp = input$ccompute_input_11,
@@ -441,15 +441,19 @@ server <- function(input, output, session) {
   
   lm_covariates_selected <- eventReactive(c(input$responseVariable, input$covariates, input$lm_intercept),{
     if(input$lm_intercept == TRUE){
+      if(is.null(input$covariates)){
+        list(names = "(Intercept)",
+             n_covariates = 1)
+      }else{
     list(names = names(model.matrix(formula(data_input()$data[,c(input$responseVariable, input$covariates)]),
-                       data = data_input()$data[,c(input$responseVariable,input$covariates)])[1,]),
+                       data = data_input()$data)[1,]),
          n_covariates = length(names(model.matrix(formula(data_input()$data[,c(input$responseVariable, input$covariates)]),
-                                                  data = data_input()$data[,c(input$responseVariable,input$covariates)])[1,]))
-    )}else{
+                                                  data = data_input()$data)[1,]))
+    )}}else{
       list(names = names(model.matrix(formula(data_input()$data[,c(input$responseVariable, input$covariates)]),
-                                      data = data_input()$data[,c(input$responseVariable,input$covariates)])[1,-1]),
+                                       data = data_input()$data)[1,])[-1],
            n_covariates = length(names(model.matrix(formula(data_input()$data[,c(input$responseVariable, input$covariates)]),
-                                                    data = data_input()$data[,c(input$responseVariable,input$covariates)])[1,-1]))
+                                                    data = data_input()$data)[1,])[-1])
       )
     }
   })
@@ -533,10 +537,20 @@ server <- function(input, output, session) {
   
   # Create the input of the fomula used on inla funtion
   inla.formula <- eventReactive(c(input$responseVariable, input$covariates, input$lm_intercept), {
-    intercept <- ifelse(input$lm_intercept, "", " -1 +")
-    f.covariates <- paste0(input$covariates, collapse = "+")
+    intercept <- ifelse(input$lm_intercept, " +1", " -1")
+    f.covariates <- ifelse(is.null(input$covariates), 0,  paste0(input$covariates, collapse = "+"))
     f.response <- paste0(input$responseVariable)
-    as.formula(paste0(f.response, rawToChar(as.raw(126)), intercept, f.covariates))
+    if(f.covariates != 0){
+    as.formula(paste0(f.response, rawToChar(as.raw(126)), paste0(c(intercept, f.covariates), collapse = "+")))
+    }else{
+      as.formula(paste0(f.response, rawToChar(as.raw(126)), intercept))
+    }
+  })
+  
+  # Controls when lm_ok is enable or disable
+  observeEvent(c(input$responseVariable, input$covariates, input$lm_intercept), {
+    shinyjs::toggleState(id = "lm_ok",
+                         condition = ((length(input$covariates) + input$lm_intercept)  >= 1))
   })
   
   # What happens after the user clicks in ok to make the model
@@ -569,7 +583,8 @@ server <- function(input, output, session) {
       control.fixed = control_fixed_input(
         prioris = prioris,
         v.names = lm_covariates_selected()$names,
-        intercept = input$lm_intercept
+        intercept = input$lm_intercept,
+        covariates = input$covariates
       ),
       control.compute = control_compute_input,
       control.inla = control_inla_input,
@@ -580,7 +595,7 @@ server <- function(input, output, session) {
     lm_inla_call_print[[output_name]] <- paste0(
       "inla(data = ", "dat",
       ", formula = ", '"', input$responseVariable,
-      " ~ ", ifelse(input$lm_intercept, "", "-1 + "), paste0(input$covariates, collapse = " + "), '"',
+      " ~ ", ifelse(input$lm_intercept, ifelse(is.null(input$covariates), "+1", ""), "-1 + "), paste0(input$covariates, collapse = " + "), '"',
       ifelse(input$lm_family_input == "gaussian", "", noquote(paste0(", family = ", '"', input$lm_family_input, '"'))),
       ifelse(checking_control_fixed(prioris, input$lm_intercept), "", paste0(
         ", control.fixed = ",
@@ -820,6 +835,7 @@ server <- function(input, output, session) {
     # Devicance Information Criterion (DIC)
     output[[ paste0("lm_dic_waic_", tabindex())]] <- renderDataTable(
       {
+        browser()
         data.frame(
           "DIC" = lm_inla[[output_name]][["dic"]][["dic"]],
           "DIC Saturated" = lm_inla[[output_name]][["dic"]][["dic.sat"]],
