@@ -3,19 +3,20 @@ server <- function(input, output, session) {
   ## -- Modal Dialog ----
   file_modal <- modalDialog(
     useShinyjs(),
-    title = "Carregando os dados",
+    title = translate("Loading the data", "en", dictionary),
     fade = FALSE,
     size = "l",
     footer = tagList(
-      shinyjs::disabled(actionButton("file_load_btn", "Abrir")),
-      modalButton("Cancelar")
+      shinyjs::disabled(actionButton("file_load_btn",
+                                     translate("Open", "en", dictionary))),
+      modalButton(translate("Cancel", "en", dictionary))
     ),
     fluidPage(
       fluidRow(
         column(
           width = 4,
-          fileInput("file", label = h4("Selecione o Arquivo com os dados")),
-          shinyjs::hidden(actionLink(inputId = "file_adv_options_btn", label = "Opções Avançadas")),
+          fileInput("file", label = h4(translate("Select the file", "en", dictionary))),
+          shinyjs::hidden(actionLink(inputId = "file_adv_options_btn", label = translate("Advanced options", "en", dictionary))),
           textOutput(outputId = "file_error_extension_txt"),
           shinyjs::hidden(uiOutput("file_adv_options_ui"))
         ),
@@ -28,9 +29,7 @@ server <- function(input, output, session) {
   )
   
   ## -- Modal Observe Events ----
-  observeEvent(input$file_action_btn, {
     showModal(file_modal)
-  })
   
   observeEvent(input$file_load_btn, {
     removeModal()
@@ -42,7 +41,7 @@ server <- function(input, output, session) {
       shinyjs::show("file_adv_options_btn")
     }
     if (!(file_ext(input$file$datapath) %in% accetable_formats)) {
-      output$file_error_extension_txt <- renderText("Extensão Inválida")
+      output$file_error_extension_txt <- renderText(translate("Invalid extension file", "en", dictionary))
     }
   })
   
@@ -55,14 +54,14 @@ server <- function(input, output, session) {
                fluidRow(
                  checkboxInput(
                    inputId = "csv_header",
-                   label = "Cabeçalho",
+                   label = translate("Header", "en", dictionary),
                    value = TRUE
                  )
                ),
                fluidRow(
                  textInput(
                    inputId = "csv_sep",
-                   label = "Separador",
+                   label = translate("Separator", "en", dictionary),
                    value = ";",
                    width = "20%"
                  )
@@ -70,7 +69,7 @@ server <- function(input, output, session) {
                fluidRow(
                  textInput(
                    inputId = "csv_quote",
-                   label = "Quote",
+                   label = translate("Quote", "en", dictionary),
                    value = "\"",
                    width = "20%"
                  )
@@ -78,7 +77,7 @@ server <- function(input, output, session) {
                fluidRow(
                  textInput(
                    inputId = "csv_dec",
-                   label = "Decimal",
+                   label = translate("Decimal", "en", dictionary),
                    value = ",",
                    width = "20%"
                  )
@@ -118,16 +117,16 @@ server <- function(input, output, session) {
       openmp.strategy = input$ccompute_input_1,
       hyperpar = input$ccompute_input_2,
       return.marginals = input$ccompute_input_3,
-      dic = input$ccompute_input_4,
-      mlik = input$ccompute_input_5,
-      cpo = input$ccompute_input_6,
-      po = input$ccompute_input_7,
-      waic = input$ccompute_input_4,
-      q = input$ccompute_input_9,
-      config = input$ccompute_input_10,
-      smtp = input$ccompute_input_11,
-      graph = input$ccompute_input_12,
-      gdensity = input$ccompute_input_13
+      dic = input$ccompute_input_4
+      # mlik = input$ccompute_input_5,
+      # cpo = input$ccompute_input_6,
+      # po = input$ccompute_input_7,
+      # waic = input$ccompute_input_4,
+      # q = input$ccompute_input_9,
+      # config = input$ccompute_input_10,
+      # smtp = input$ccompute_input_11,
+      # graph = input$ccompute_input_12,
+      # gdensity = input$ccompute_input_13
     ))
     
     # uptdate control_inla_input in global enviroment
@@ -143,12 +142,12 @@ server <- function(input, output, session) {
   observeEvent(input$options_action_btn, {
     options_modal <- modalDialog( ## -- DOUGLAS: Criando o modal aqui dentro. Desta forma ele vai ser recriado toda vez que clicar em opções
       useShinyjs(),
-      title = "Opções",
+      title = translate("Options", "en", dictionary),
       fade = FALSE,
       size = "l",
       footer = tagList(
-        actionButton("ok_btn_options_modal", "Ok"),
-        modalButton("Cancelar")
+        actionButton("ok_btn_options_modal", translate("Ok", "en", dictionary)),
+        modalButton(translate("Cancel", "en", dictionary))
       ),
       fluidPage(
         tabsetPanel(
@@ -156,13 +155,13 @@ server <- function(input, output, session) {
             "Control Compute",
             fluidRow(selectInput(
               inputId = "ccompute_input_1",
-              label = "Estratégia Computacional",
+              label = translate("Computational strategy", "en", dictionary),
               choices = list(
-                "Pequena" = "small",
-                "Média" = "medium",
-                "Grande" = "large",
-                "Imenso" = "huge",
-                "Padrão" = "default"
+                "small" = translate("Small", "en", dictionary),
+                "medium" = translate("Medium", "en", dictionary),
+                "large" = translate("Large", "en", dictionary),
+                "huge" =  translate("Huge", "en", dictionary),
+                "default" = translate("Default", "en", dictionary)
               ),
               selected = control_compute_input[[1]],
               multiple = FALSE,
@@ -170,82 +169,82 @@ server <- function(input, output, session) {
             )),
             fluidRow(checkboxInput(
               inputId = "ccompute_input_2",
-              label = "Calcular a Marginal dos Hiperparâmetros",
+              label = translate("Compute the marginal of hyperparameters", "en", dictionary),
               value = control_compute_input[[2]]
             )),
             fluidRow(checkboxInput(
               inputId = "ccompute_input_3",
-              label = "Retornar as marginais do campo latente",
+              label = translate("Return the marginal of latent field", "en", dictionary),
               value = control_compute_input[[3]]
             )),
             fluidRow(checkboxInput(
               inputId = "ccompute_input_4",
-              label = "Calcular o valor-DIC e WAIC",
+              label = translate("Compute the DIC-value and WAIC", "en", dictionary),
               value = globalenv()$control_compute_input[[4]]
-            )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_5",
-              label = "Calcular as marginais da Verssimilhança",
-              value = control_compute_input[[5]]
-            )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_6",
-              label = "Calcular o CPO",
-              value = control_compute_input[[6]]
-            )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_7",
-              label = "Calcular a preditive ordinate",
-              value = control_compute_input[[7]]
-            )),
+            ))
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_5",
+            #   label = translate("Compute the marginal likelihood", "en", dictionary),
+            #   value = control_compute_input[[5]]
+            # )),
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_6",
+            #   label = translate("Compute the CPO", "en", dictionary),
+            #   value = control_compute_input[[6]]
+            # )),
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_7",
+            #   label = "Calcular a preditive ordinate",
+            #   value = control_compute_input[[7]]
+            # )),
             # fluidRow(checkboxInput(
             #   inputId = "ccompute_input_8",
             #   label = "Calcular o WAIC",
             #   value = control_compute_input[[8]]
             # )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_9",
-              label = "Gerar as imagens da matriz de precição, matriz de precição reordenada
-              e o triangulo de Cholesky",
-              value = control_compute_input[[9]]
-            )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_10",
-              label = "Guardar as aproximações do Gaussian Markov Random Field",
-              value = control_compute_input[[10]]
-            )),
-            fluidRow(selectInput(
-              inputId = "ccompute_input_11",
-              label = "Estratégia para resolver a matriz esparça",
-              choices = list(
-                "Taucs" = "taucs",
-                "Band" = "band",
-                "Pardiso" = "pardiso",
-                "Padrão" = "default"
-              ),
-              selected = control_compute_input[[11]],
-              multiple = FALSE,
-              width = "30%"
-            )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_12",
-              label = "Retornar os Gráficos",
-              value = control_compute_input[[12]]
-            )),
-            fluidRow(checkboxInput(
-              inputId = "ccompute_input_13",
-              label = "Retornar as densidades Gaussianas",
-              value = control_compute_input[[13]]
-            ))
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_9",
+            #   label = "Gerar as imagens da matriz de precição, matriz de precição reordenada
+            #   e o triangulo de Cholesky",
+            #   value = control_compute_input[[9]]
+            # )),
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_10",
+            #   label = "Guardar as aproximações do Gaussian Markov Random Field",
+            #   value = control_compute_input[[10]]
+            # )),
+            # fluidRow(selectInput(
+            #   inputId = "ccompute_input_11",
+            #   label = "Estratégia para resolver a matriz esparça",
+            #   choices = list(
+            #     "Taucs" = "taucs",
+            #     "Band" = "band",
+            #     "Pardiso" = "pardiso",
+            #     "Padrão" = "default"
+            #   ),
+            #   selected = control_compute_input[[11]],
+            #   multiple = FALSE,
+            #   width = "30%"
+            # )),
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_12",
+            #   label = "Retornar os Gráficos",
+            #   value = control_compute_input[[12]]
+            # )),
+            # fluidRow(checkboxInput(
+            #   inputId = "ccompute_input_13",
+            #   label = "Retornar as densidades Gaussianas",
+            #   value = control_compute_input[[13]]
+            # ))
           ),
           tabPanel(
             "Control INLA",
             fluidRow(selectInput(
               inputId = "cinla_input_1",
-              label = "Estatégia de aproximação",
+              label = translate("Approximation strategy", "en", dictionary),
               choices = list(
-                "Guassiana" = "gaussian",
-                "Laplace Simplificada" = "simplified.laplace",
+                "gaussian" = translate("Gaussian", "en", dictionary),
+                "simplified.laplace" = translate("Simplified Laplace", "en", dictionary),
                 "Laplace" = "laplace"
               ),
               selected = "simplified.laplace",
@@ -254,7 +253,7 @@ server <- function(input, output, session) {
             )),
             fluidRow(selectInput(
               inputId = "cinla_input_2",
-              label = "Estratégia de Integração",
+              label = translate("Integration strategy", "en", dictionary),
               choices = list(
                 "auto" = "auto",
                 "ccd" = "ccd",
@@ -269,8 +268,7 @@ server <- function(input, output, session) {
             )),
             fluidRow(checkboxInput(
               inputId = "cinla_input_5",
-              label = "Substituir Condicional na aproximação de Laplace
-              pela esperança da condicional",
+              label = translate("Replace conditional modes in the Laplace approximation with conditional expectation", "en", dictionary),
               value = TRUE
             ))
           )
@@ -324,23 +322,37 @@ server <- function(input, output, session) {
       rhandsontable(data_input()$data, digits = 4, height = 800, stretchH = "all") %>%
         hot_cols(format = "0.0000")
     })
+    
+    output$file_data_summary_ui <- renderDataTable({
+      data.frame(unclass(summary(data_input()$data)),
+                 check.names = FALSE,
+                 stringsAsFactors = FALSE,
+                 row.names = NULL)
+      
+    },
+    options = list(
+      dom = "t"
+    )
+      )
   })
   
   ## -- Modal Dialog Linear Model ----
   ## -- Modal Dialog ----
   linear_model_modal <- modalDialog(
-    title = "Regressão Linear",
+    useShinyjs(),
+    title = translate("Linear Regression", "en", dictionary),
     fade = FALSE,
     size = "l",
     footer = tagList(
       actionButton("lm_ok", "Ok"),
-      modalButton("Cancelar")
+      modalButton(translate("Cancel", "en", dictionary))
     ),
     tabsetPanel(
       id = "linear_panel",
-      selected = "Selecione Varíaveis",
+      selected = translate("Select Variables", "en", dictionary),
       tabPanel(
-        title = "Selecione Varíaveis",
+        title = translate("Select Variables", "en", dictionary),
+        column(6,
         fluidRow(
           uiOutput("uiResponse"),
           uiOutput("uiCovariates")
@@ -348,33 +360,41 @@ server <- function(input, output, session) {
         fluidRow(
           checkboxInput(
             inputId = "lm_intercept",
-            label = "Intercept",
+            label = translate("Intercept", "en", dictionary),
             value = TRUE
           )
-        ),
+        )
+      ),
+      column(6, fluidRow(
+        column(width = 12,
+               align="center",
+        actionButton(
+          inputId = "lm_show_fixed_prior",
+          label = translate("Edit priors", "en", dictionary)
+        ))),
         fluidRow(
-          title = "Selecione a família",
-          selectInput(
+        column(6, shinyjs::hidden(uiOutput("uiPrioriMean"))),
+        column(6, shinyjs::hidden(uiOutput("uiPrioriPrec")))
+      ))),
+      tabPanel(
+        title = translate("Hyperpriors", "en", dictionary),
+        fluidRow(
+          column(6, selectInput(
             inputId = "lm_family_input",
-            label = "Familia",
+            label = translate("Family", "en", dictionary),
             choices = lm_family,
             selected = "normal"
-          )
-        )
-      ),
-      tabPanel(
-        title = "Prioris",
-        fluidRow(
-          column(4, uiOutput("uiPrioriMean")),
-          column(4, uiOutput("uiPrioriPrec"))
-        )
-      ),
-      tabPanel(
-        title = "Prioris Hyperparâmetros",
-        fluidRow(column(6, uiOutput("ui_hyper_prior")))
+          )),
+          column(6, uiOutput("ui_hyper_prior")))
       )
-    )
+    ),
+    tags$head(tags$style(".modal-footer{border-top: 0 none}"))
   )
+  
+  observeEvent(input$lm_show_fixed_prior, {
+    shinyjs::toggle(id = "uiPrioriMean")
+    shinyjs::toggle(id = "uiPrioriPrec")
+  })
   
   observeEvent(input$linear_action_btn, {
     showModal(linear_model_modal)
@@ -387,7 +407,7 @@ server <- function(input, output, session) {
     }
     radioGroupButtons(
       inputId = "responseVariable",
-      label = "Selecione a varíavel resposta",
+      label = translate("Select the response variable", "en", dictionary),
       choices = data_input()$covariates,
       justified = TRUE,
       checkIcon = list(
@@ -403,7 +423,7 @@ server <- function(input, output, session) {
     }
     checkboxGroupButtons(
       inputId = "covariates",
-      label = "Selecione as covariáveis",
+      label = translate("Select the covariates", "en", dictionary),
       choices = data_input()$covariates[data_input()$covariates != input$responseVariable],
       selected = data_input()$covariates[data_input()$covariates != input$responseVariable],
       justified = TRUE,
@@ -462,28 +482,13 @@ server <- function(input, output, session) {
     })
   })
   
-  # observe({
-  #   shinyjs::toggle(id = "mean1", condition = input$lm_intercept)
-  #   shinyjs::toggle(id = "prec1", condition = input$lm_intercept)
-  #   
-  # })
-  
-  # observeEvent(c(input$responseVariable, input$covariates, input$lm_intercept), {
-  #   for(i in 1:data_input()$n.variables){
-  #     if((i == 1) && (input$lm_intercept == FALSE)){
-  #       shinyjs::hideElement(id = input[[ paste0("mean", i) ]], anim = FALSE)
-  #       shinyjs::hideElement(id = input[[ paste0("prec", i) ]], anim = FALSE)
-  #     }
-  #   }
-  # })
-  
   # Create the UI with options to user select hyper priors distributions
   output$ui_hyper_prior <- renderUI({
     lapply(1:n_hyper(input$lm_family_input), function(number) {
       fluidRow(column(
         6, selectInput(
           inputId = paste0("lm_hyper_dist_", number),
-          label = paste0("Selecione a Distribuicao do ", name_hyper(input$lm_family_input, number)),
+          label = paste0(translate("Select the distribution of ", "en", dictionary), name_hyper(input$lm_family_input, number)),
           choices = priors_distributions,
           selected = hyper_default(input$lm_family_input, number),
           multiple = FALSE
@@ -501,7 +506,7 @@ server <- function(input, output, session) {
     lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("lm_hyper_dist_1")]]), hyper_default(input$lm_family_input, 1), input[[ paste0("lm_hyper_dist_", 1)]])), function(n_param) {
       numericInput(
         inputId = paste0("input_hyper_1_param_", n_param),
-        label = paste0("Parametro ", n_param),
+        label = paste0(translate("Parameter ", "en", dictionary), n_param),
         value = hyper_default_param(input$lm_family_input, 1)[n_param]
       )
     })
@@ -515,7 +520,7 @@ server <- function(input, output, session) {
     lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("lm_hyper_dist_2")]]), hyper_default(input$lm_family_input, 2), input[[ paste0("lm_hyper_dist_", 2)]])), function(n_param) {
       numericInput(
         inputId = paste0("input_hyper_2_param_", n_param),
-        label = paste0("Parametro ", n_param),
+        label = paste0(translate("Parameter ", "en", dictionary), n_param),
         value = hyper_default_param(input$lm_family_input, 2)[n_param]
       )
     })
@@ -547,7 +552,6 @@ server <- function(input, output, session) {
       prioris[i, 2] <- ifelse("prec1" %in% names(input), input[[  ifelse( i == 1, paste0("prec1"), paste0("prec", lm_covariates_selected()$names[i]))]], NA_real_)
     }
     
-    browser()
    
     # Create values to the result of the model and the edited call of the model
     lm_inla <- list()
@@ -593,7 +597,7 @@ server <- function(input, output, session) {
     appendTab(
       inputId = "mytabs", select = TRUE,
       tabPanel(
-        title = paste0("Modelo", tabindex()),
+        title = paste0(translate("Model", "en", dictionary), tabindex()),
         useShinydashboard(),
         useShinyjs(),
         fluidRow(
@@ -601,12 +605,12 @@ server <- function(input, output, session) {
             width = 6,
             box(
               id = paste0("lm_box_call_", tabindex()),
-              title = "Call",
+              title = translate("Call", "en", dictionary),
               status = "primary",
               solidHeader = TRUE,
               width = 12,
               textOutput(outputId = paste0("lm_call", tabindex())),
-              tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_call", tabindex()))),
+              tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_call", tabindex()))),
               tags$div(
                 class = "collapse", id = paste0("showcode_call", tabindex()),
                 tags$code(
@@ -624,12 +628,12 @@ server <- function(input, output, session) {
             width = 6,
             box(
               id = paste0("lm_box_time_used", tabindex()),
-              title = "Time Used",
+              title = translate("Time Used", "en", dictionary),
               status = "primary",
               solidHeader = TRUE,
               width = 12,
               dataTableOutput(outputId = paste0("lm_time_used_", tabindex())),
-              tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_time", tabindex()))),
+              tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_time", tabindex()))),
               tags$div(
                 class = "collapse", id = paste0("showcode_time", tabindex()),
                 tags$code(
@@ -649,12 +653,12 @@ server <- function(input, output, session) {
             width = 12,
             box(
               id = paste0("lm_box_fix_effects_", tabindex()),
-              title = "Fixed Effects",
+              title = translate("Fixed Effects", "en", dictionary),
               status = "primary",
               solidHeader = TRUE,
               width = 12,
               dataTableOutput(outputId = paste0("lm_fix_effects_", tabindex())),
-              tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", tabindex()))),
+              tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", tabindex()))),
               tags$div(
                 class = "collapse", id = paste0("showcode_fix_effects_", tabindex()),
                 tags$code(
@@ -676,12 +680,12 @@ server <- function(input, output, session) {
                 condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
                 box(
                   id = paste0("lm_box_model_hyper_", tabindex()),
-                  title = "Model Hyperparameters",
+                  title = translate("Model Hyperparameters", "en", dictionary),
                   status = "primary",
                   solidHeader = TRUE,
                   width = 6,
                   dataTableOutput(outputId = paste0("lm_model_hyper_", tabindex())),
-                  tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", tabindex()))),
+                  tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", tabindex()))),
                   tags$div(
                     class = "collapse", id = paste0("showcode_model_hyper_", tabindex()),
                     tags$code(
@@ -697,12 +701,12 @@ server <- function(input, output, session) {
               ),
               box(
                 id = paste0("lm_box_neffp_", tabindex()),
-                title = "Expected Effective Number of Parameters in the Model",
+                title = translate("Expected Effective Number of Parameters in the Model", "en", dictionary),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 6,
                 dataTableOutput(outputId = paste0("lm_neffp_", tabindex())),
-                tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_neffp_", tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_neffp_", tabindex()),
                   tags$code(
@@ -719,12 +723,12 @@ server <- function(input, output, session) {
                 condition = "(input.ccompute_input_4 != '' &&  input.ccompute_input_4 == true)",
                 box(
                   id = paste0("lm_box_dic_waic_", tabindex()),
-                  title = "DIC and WAIC",
+                  title = translate("DIC and WAIC", "en", dictionary),
                   status = "primary",
                   solidHeader = TRUE,
                   width = 6,
                   dataTableOutput(outputId = paste0("lm_dic_waic_", tabindex())),
-                  tags$b(tags$a(icon("code"), "Show code", `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", tabindex()))),
+                  tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", tabindex()))),
                   tags$div(
                     class = "collapse", id = paste0("showcode_dic_waic_", tabindex()),
                     tags$code(
