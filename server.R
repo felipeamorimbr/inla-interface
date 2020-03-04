@@ -548,15 +548,16 @@ server <- function(input, output, session) {
   })
   
   # Controls when lm_ok is enable or disable
-  observeEvent(c(input$responseVariable, input$covariates, input$lm_intercept), {
+  observe({
     shinyjs::toggleState(id = "lm_ok",
-                         condition = ((length(input$covariates) + input$lm_intercept)  >= 1))
+                         condition = lm_check_regression(input, lm_covariates_selected()))
   })
   
   # What happens after the user clicks in ok to make the model
   tabindex <- reactiveVal(0)
   observeEvent(input$lm_ok, {
     useShinyjs()
+    browser()
     # Close the modal with lm options
     removeModal()
     
@@ -835,7 +836,6 @@ server <- function(input, output, session) {
     # Devicance Information Criterion (DIC)
     output[[ paste0("lm_dic_waic_", tabindex())]] <- renderDataTable(
       {
-        browser()
         data.frame(
           "DIC" = lm_inla[[output_name]][["dic"]][["dic"]],
           "DIC Saturated" = lm_inla[[output_name]][["dic"]][["dic.sat"]],

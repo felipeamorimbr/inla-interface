@@ -14,6 +14,7 @@ source("functions/list_call.R")
 source("functions/inla_models_functions.R")
 source("functions/check_if_is_different.R")
 source("functions/dictionary.R")
+source("functions/check_lm_ok.R")
 
 
 accetable_formats <- c("csv", "txt")
