@@ -200,6 +200,14 @@ dictionary <- list(
   "DIC and WAIC" = list(
     "en" = "DIC and WAIC",
     "pt-br" = "DIC e WAIC"
+  ),
+  "Error" = list(
+    "en" = "Error",
+    "pt-br" = "Erro"
+  ),
+  "Error: no covariates selected" = list(
+    "en" = "Error: no covariates selected",
+    "pt-br" = "Erro: nenhuma covariável selecioanada"
   )
 )
 
