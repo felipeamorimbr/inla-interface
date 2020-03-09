@@ -208,6 +208,19 @@ dictionary <- list(
   "Error: no covariates selected" = list(
     "en" = "Error: no covariates selected",
     "pt-br" = "Erro: nenhuma covariável selecioanada"
+  ),
+  "-The response variable must be numeric" = list(
+    "en" = "-The response variable must be numeric",
+    "pt-br" = "-A variável resposta deve ser numérica"
+  ),
+  "-The priors of fixed effects must be numeric" = list(
+    "en" = "-The priors of fixed effects must be numeric",
+    "pt-br" = "-As prioris dos efeitos fixos devem ser numéricas"
+  ),
+  "-The Hyperprioris must be numeric" = list(
+    "en" = "-The Hyperprioris must be numeric",
+    "pt-br" = "-As Hiper Prioris devem ser numéricas"
   )
+  
 )
 

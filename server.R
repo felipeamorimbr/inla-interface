@@ -502,7 +502,7 @@ server <- function(input, output, session) {
   })
 
   output$uiPrioriPrec <- renderUI({ # Generate the input boxes for the precision according to the number of columns of input file
-    if (is.null(data_input()$n.variables)) {
+    if (is.null(data_input()$n.variables) || (length(input$covariates) + input$lm_intercept) == 0) {
       return()
     }
     lapply(1:lm_covariates_selected()$n_covariates, function(number) {
@@ -578,6 +578,7 @@ server <- function(input, output, session) {
   tabindex <- reactiveVal(0)
   observeEvent(input$lm_ok, {
     useShinyjs()
+    browser()
     # Create the matrix used in control_fixed_input
     prioris <- matrix(NA_real_, nrow = lm_covariates_selected()$n_covariates, ncol = 2)
     for (i in 1:lm_covariates_selected()$n_covariates) {
@@ -589,8 +590,17 @@ server <- function(input, output, session) {
         session = session,
         title = translate("Error", language = "en", dictionary = dictionary),
         text = tags$span(
-          "to_do"
-        ),
+          paste0(ifelse(!(is.numeric(data_input()$data[,input$responseVariable])), 
+                 paste0(translate("-The response variable must be numeric", language = "en", dictionary)),
+                 ""),
+                 ifelse(!(length(grep("mean", names(input))) == 0) && any(is.na(prioris)),
+                        paste0(translate("-The priors of fixed effects must be numeric", language = "en", dictionary)),
+                        ""),
+                 ifelse(!(length(grep("lm_hyper_dist", names(input))) == 0) && any(is.na(hyper_prior)), 
+                        paste0(translate("-The HyperPrioris must be numeric", language = "en", dictionary)),
+                        ""),
+                 sep = "\n"
+        )),
         html = TRUE,
         type = "error",
         closeOnClickOutside = TRUE
