@@ -11,7 +11,8 @@ ui <- fluidPage(
       ),
       smNavDropdown(
         label = translate("Models", "en", dictionary),
-        smAction("linear_action_btn", translate("Linear Regression", "en", dictionary))
+        smAction("linear_action_btn", translate("Linear Regression", "en", dictionary)),
+        smAction("glm_action_btn", translate("General Linear Models", "en", dictionary))
       ),
       actionButton("options_action_btn", translate("Options", "en", dictionary))
     )

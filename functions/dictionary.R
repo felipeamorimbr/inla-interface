@@ -228,6 +228,10 @@ dictionary <- list(
   "Inla has crashed. Try edit the fixed priors and/or the hyperpriors and rerun" = list(
     "en" = "Inla has crashed. Try edit the fixed priors and/or the hyperpriors and rerun",
     "pt-br" = "O Inla travou. Tente editar as prioris dos efeitos fixos e/ou das hiperprioris e rode novamente"
+  ),
+  "General Linear Models" = list(
+    "en" = "General Linear Models",
+    "pt-br" = "Modelos Lineares Generalizados"
   )
 )
 
