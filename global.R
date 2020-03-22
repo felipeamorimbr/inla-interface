@@ -15,6 +15,7 @@ source("functions/inla_models_functions.R")
 source("functions/check_if_is_different.R")
 source("functions/dictionary.R")
 source("functions/check_lm_ok.R")
+source("functions/check_glm_ok.R")
 
 
 accetable_formats <- c("csv", "txt")
@@ -27,3 +28,4 @@ priors_distributions <- names(inla.models()$prior)
 priors_distributions <- priors_distributions[-c(37,38)]
 
 lm_family <- c("gaussian", "t")
+glm_family <- names(inla.models()$likelihood)

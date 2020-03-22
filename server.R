@@ -9,5 +9,5 @@ server <- function(input, output, session) {
   source("modal/lm_modal.R", local = TRUE)
   
   #General Linear Model Modal
-  
+  source("modal/glm_modal.R", local = TRUE)
 }

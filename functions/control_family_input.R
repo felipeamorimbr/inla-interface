@@ -14,5 +14,7 @@ control_family_input <- function(...){
                                                                   paste0("input$input_hyper_",i,"_param_", j))
     }
   }
+  
+  hyper$control.link = list(model = ifelse(is.null(input$glm_link_function), "default", input$glm_link_function))
   return(list(hyper))
 }

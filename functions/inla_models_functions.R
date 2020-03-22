@@ -45,3 +45,8 @@ control_family_input <- function(input, ...){
   return(list(hyper = hyper))
 }
 
+#Function that recive family anb returns the link function avaliable
+link_avaliable <- function(family){
+  return(inla.models()$likelihood[[ paste0(family) ]]$link)
+}
+

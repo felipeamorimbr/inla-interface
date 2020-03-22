@@ -232,6 +232,10 @@ dictionary <- list(
   "General Linear Models" = list(
     "en" = "General Linear Models",
     "pt-br" = "Modelos Lineares Generalizados"
+  ),
+  "Select the link function" = list(
+    "en" = "Select the link function",
+    "pt-br" = "Selecione a função de ligação"
   )
 )
 
