@@ -7,6 +7,7 @@ library(rhandsontable)
 library(shinyWidgets)
 library(DT)
 library(shinydashboard)
+library(enc)
 
 source("functions/file_ext.R")
 source("functions/control_fixed_input.R")
@@ -29,3 +30,5 @@ priors_distributions <- priors_distributions[-c(37,38)]
 
 lm_family <- c("gaussian", "t")
 glm_family <- names(inla.models()$likelihood)
+
+language_selected <- ifelse(!exists("input$language"), "en", input$language)

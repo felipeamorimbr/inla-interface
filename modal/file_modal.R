@@ -3,24 +3,30 @@
 ## -- Modal Dialog ----
 file_modal <- modalDialog(
   useShinyjs(),
-  title = translate("Loading the data", "en", dictionary),
+  title = translate("Loading the data", language = language_selected, dictionary),
   fade = FALSE,
   size = "l",
   footer = tagList(
     shinyjs::disabled(actionButton(
       "file_load_btn",
-      translate("Open", "en", dictionary)
+      translate("Open", language = language_selected, dictionary)
     )),
-    modalButton(translate("Cancel", "en", dictionary))
+    modalButton(translate("Cancel", language = language_selected, dictionary))
   ),
   fluidPage(
     fluidRow(
       column(
         width = 4,
-        fileInput("file", label = h4(translate("Select the file", "en", dictionary))),
-        shinyjs::hidden(actionLink(inputId = "file_adv_options_btn", label = translate("Advanced options", "en", dictionary))),
+        fileInput("file", label = h4(translate("Select the file", language = language_selected, dictionary))),
+        shinyjs::hidden(actionLink(inputId = "file_adv_options_btn", label = translate("Advanced options", language = language_selected, dictionary))),
         textOutput(outputId = "file_error_extension_txt"),
-        shinyjs::hidden(uiOutput("file_adv_options_ui"))
+        shinyjs::hidden(uiOutput("file_adv_options_ui")),
+        selectInput(inputId = "language",
+                    label = translate("Language", language = language_selected, dictionary),
+                    choices = c("English" = "en",
+                                "Português (Brasil)" = "pt-br"),
+                    multiple = FALSE
+                    )
       ),
       column(
         width = 8,
@@ -38,8 +44,13 @@ observeEvent(input$file_action_btn, {
 })
 
 observeEvent(input$file_load_btn, {
+  rlang::env_bind(.env = globalenv(), language_selected = input$language)
   removeModal()
 })
+
+# observeEvent(input$language, {
+# 
+# })
 
 observeEvent(input$file, {
   if (!is.null(input$file) && (file_ext(input$file$datapath) %in% accetable_formats)) {
@@ -47,7 +58,7 @@ observeEvent(input$file, {
     shinyjs::show("file_adv_options_btn")
   }
   if (!(file_ext(input$file$datapath) %in% accetable_formats)) {
-    output$file_error_extension_txt <- renderText(translate("Invalid extension file", "en", dictionary))
+    output$file_error_extension_txt <- renderText(translate("Invalid extension file", language = language_selected, dictionary))
   }
 })
 
@@ -60,14 +71,14 @@ observeEvent(input$file, {
         fluidRow(
           checkboxInput(
             inputId = "csv_header",
-            label = translate("Header", "en", dictionary),
+            label = translate("Header", language = language_selected, dictionary),
             value = TRUE
           )
         ),
         fluidRow(
           textInput(
             inputId = "csv_sep",
-            label = translate("Separator", "en", dictionary),
+            label = translate("Separator", language = language_selected, dictionary),
             value = ";",
             width = "20%"
           )
@@ -75,7 +86,7 @@ observeEvent(input$file, {
         fluidRow(
           textInput(
             inputId = "csv_quote",
-            label = translate("Quote", "en", dictionary),
+            label = translate("Quote", language = language_selected, dictionary),
             value = "\"",
             width = "20%"
           )
@@ -83,7 +94,7 @@ observeEvent(input$file, {
         fluidRow(
           textInput(
             inputId = "csv_dec",
-            label = translate("Decimal", "en", dictionary),
+            label = translate("Decimal", language = language_selected, dictionary),
             value = ",",
             width = "20%"
           )

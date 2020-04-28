@@ -14,11 +14,11 @@ dictionary <- list(
   ),
   "Linear Regression" = list(
     "en" = "Linear Regression",
-    "pt-br" = "RegressÃ£o Linear"
+    "pt-br" = "Regressão Linear"
   ),
   "Options" = list(
     "en" = "Options",
-    "pt-br" = "OpÃ§Ãµes"
+    "pt-br" = "Opções"
   ),
   "Data" = list(
     "en" = "Data",
@@ -46,15 +46,15 @@ dictionary <- list(
   ),
   "Advanced options" = list(
     "en" = "Advanced options",
-    "pt-br" = "OpÃ§Ãµes AvanÃ§adas"
+    "pt-br" = "Opções Avançadas"
   ),
   "Invalid extension file" = list(
     "en" = "Invalid extension file",
-    "pt-br" = "ExtensÃ£o de arquivo invÃ¡lida"
+    "pt-br" = "Extensão de arquivo inválida"
   ),
   "Header" = list(
     "en" = "Header",
-    "pt-br" = "CabeÃ§alho"
+    "pt-br" = "Cabeçalho"
   ),
   "Separator" = list(
     "en" = "Separator",
@@ -62,7 +62,7 @@ dictionary <- list(
   ),
   "Quote" = list(
     "en" = "Quote",
-    "pt-br" = "CitaÃ§Ã£o"
+    "pt-br" = "Citação"
   ),
   "Decimal" = list(
     "en" = "Decimal",
@@ -74,7 +74,7 @@ dictionary <- list(
   ),
   "Computational strategy" = list(
     "en" = "Computational strategy",
-    "pt-br" = "EstratÃ©gia computacional"
+    "pt-br" = "Estratégia computacional"
   ),
   "Small" = list(
     "en" = "Small",
@@ -82,7 +82,7 @@ dictionary <- list(
   ),
   "Medium" = list(
     "en" = "Medium",
-    "pt-br" = "MÃ©dia"
+    "pt-br" = "Média"
   ),
   "Large" = list(
     "en" = "Large",
@@ -94,11 +94,11 @@ dictionary <- list(
   ),
   "Default" = list(
     "en" = "Default",
-    "pt-br" = "PadrÃ£o"
+    "pt-br" = "Padrão"
   ),
   "Compute the marginal of hyperparameters" = list(
     "en" = "Compute the marginal of hyperparameters",
-    "pt-br" = "Calcular a marginal dos hiperparamÃªtros"
+    "pt-br" = "Calcular a marginal dos hiperparamêtros"
   ),
   "Return the marginal of latent field" = list(
     "en" = "Return the marginal of latent field",
@@ -110,11 +110,11 @@ dictionary <- list(
   ),
   "Compute the marginal likelihood" = list(
     "en" = "Compute the marginal likelihood",
-    "pt-br" = "Calcular a verossemelhanÃ§a marginal"
+    "pt-br" = "Calcular a verossemelhança marginal"
   ),
   "Approximation strategy" = list(
     "en" = "Approximation strategy",
-    "pt-br" = "EstratÃ©gia de aproximaÃ§Ã£o"
+    "pt-br" = "Estratégia de aproximação"
   ),
   "Gaussian" = list(
     "en" = "Gaussian",
@@ -126,16 +126,16 @@ dictionary <- list(
   ),
   "Integration strategy" = list(
     "en" = "Integration strategy",
-    "pt-br" = "EstratÃ©gia de integraÃ§Ã£o"
+    "pt-br" = "Estratégia de integração"
   ),
   "Replace conditional modes in the Laplace approximation with conditional expectation" = list(
      "en" = "Replace conditional modes in the Laplace approximation with conditional expectation",
-     "pt-br" = "Substituir Condicional na aproximaÃ§Ã£o de Laplace
-              pela esperanÃ§a da condicional"
+     "pt-br" = "Substituir Condicional na aproximação de Laplace
+              pela esperança da condicional"
    ),
   "Select Variables" = list(
     "en" = "Select Variables",
-    "pt-br" = "Selecione as variÃ¡veis"
+    "pt-br" = "Selecione as variáveis"
   ),
   "Intercept" = list(
     "en" = "Intercept",
@@ -151,23 +151,23 @@ dictionary <- list(
   ),
   "Family" = list(
     "en" = "Family",
-    "pt-br" = "FamÃ­lia"
+    "pt-br" = "Família"
   ),
   "Select the response variable" = list(
     "en" = "Select the response variable",
-    "pt-br" = "Selecione a variÃ¡vel resposta"
+    "pt-br" = "Selecione a variável resposta"
   ),
   "Select the covariates" = list(
     "en" = "Select the covariates",
-    "pt-br" = "Selecione as covariÃ¡veis"
+    "pt-br" = "Selecione as covariáveis"
   ), 
   "Select the distribution of " = list(
     "en" = "Select the distribution of ", 
-    "pt-br" = "Selecione a distribuiÃ§Ã£o do "
+    "pt-br" = "Selecione a distribuição do "
   ),
   "Parameter " = list(
     "en" = "Parameter ",
-    "pt-br" = "ParÃ¢metro "
+    "pt-br" = "Parâmetro "
   ),
   "Model" = list(
     "en" = "Model",
@@ -175,7 +175,7 @@ dictionary <- list(
   ),
   "Call" = list(
     "en" = "Call",
-    "pt-br" = "CÃ³digo"
+    "pt-br" = "Código"
   ),
   "Time Used" = list(
     "en" = "Time Used",
@@ -183,7 +183,7 @@ dictionary <- list(
   ),
   "Show code" = list(
     "en" = "Show code",
-    "pt-br" = "Mostrar cÃ³digo"
+    "pt-br" = "Mostrar código"
   ),
   "Fixed Effects" = list(
     "en" = "Fixed Effects",
@@ -195,7 +195,7 @@ dictionary <- list(
   ),
   "Expected Effective Number of Parameters in the Model" = list(
     "en" = "Expected Effective Number of Parameters in the Model",
-    "pt-br" = "NÃºmero esperado de parÃ¢metros no modelo"
+    "pt-br" = "Número esperado de parâmetros no modelo"
   ),
   "DIC and WAIC" = list(
     "en" = "DIC and WAIC",
@@ -207,27 +207,27 @@ dictionary <- list(
   ),
   "Error: no covariates selected" = list(
     "en" = "Error: no covariates selected",
-    "pt-br" = "Erro: nenhuma covariÃ¡vel selecioanada"
+    "pt-br" = "Erro: nenhuma covariável selecioanada"
   ),
   "-The response variable must be numeric" = list(
     "en" = "-The response variable must be numeric",
-    "pt-br" = "-A variÃ¡vel resposta deve ser numÃ©rica"
+    "pt-br" = "-A variável resposta deve ser numérica"
   ),
   "-The priors of fixed effects must be numeric" = list(
     "en" = "-The priors of fixed effects must be numeric",
-    "pt-br" = "-As prioris dos efeitos fixos devem ser numÃ©ricas"
+    "pt-br" = "-As prioris dos efeitos fixos devem ser numéricas"
   ),
   "-The Hyperprioris must be numeric" = list(
     "en" = "-The Hyperprioris must be numeric",
-    "pt-br" = "-As Hiper Prioris devem ser numÃ©ricas"
+    "pt-br" = "-As Hiper Prioris devem ser numéricas"
   ),
   "Error in inla" = list(
     "en" = "Error in inla",
     "pt-br" = "Erro no Inla"
   ),
-  "Inla has crashed. Try edit the fixed priors and/or the hyperpriors and rerun" = list(
-    "en" = "Inla has crashed. Try edit the fixed priors and/or the hyperpriors and rerun",
-    "pt-br" = "O Inla travou. Tente editar as prioris dos efeitos fixos e/ou das hiperprioris e rode novamente"
+  "INLA has crashed. INLA try to run and failed." = list(
+    "en" = "INLA has crashed. INLA try to run and failed.",
+    "pt-br" = "O Inla travou. O INLA tentou rodar e falhou"
   ),
   "General Linear Models" = list(
     "en" = "General Linear Models",
@@ -235,7 +235,15 @@ dictionary <- list(
   ),
   "Select the link function" = list(
     "en" = "Select the link function",
-    "pt-br" = "Selecione a funÃ§Ã£o de ligaÃ§Ã£o"
+    "pt-br" = "Selecione a função de ligação"
+  ),
+  "Language" = list(
+    "en" = "Language",
+    "pt-br" = "Idioma"
+  ),
+  "No Hyperparameter avaliabe for this family" = list(
+    "en" = "No Hyperparameter avaliabe for this family",
+    "pt-br" = "Não há hiperparâmetrnos para essa familía"
   )
 )
 

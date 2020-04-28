@@ -4,18 +4,32 @@
 linear_model_modal <- modalDialog(
   useShinyjs(),
   useSweetAlert(),
-  title = translate("Linear Regression", "en", dictionary),
+  title = translate("Linear Regression", language = language_selected, dictionary),
   fade = FALSE,
   size = "l",
   footer = tagList(
-    actionButton("lm_ok", "Ok"),
-    modalButton(translate("Cancel", "en", dictionary))
+    actionButton("lm_ok", uiOutput(outputId = "lm_txt_ok")),
+    modalButton(uiOutput(outputId = "lm_txt_cancel"))
   ),
+  uiOutput(outputId = "lm_main_UI"),
+  tags$head(tags$style(".modal-footer{border-top: 0 none}"))
+)
+
+output$lm_txt_ok <- renderText({
+  translate("OK", language = language_selected, dictionary)
+})
+
+output$lm_txt_ok <- renderText({
+  translate("Cancel", language = language_selected, dictionary)
+})
+
+
+output$lm_main_UI <- renderUI({
   tabsetPanel(
     id = "linear_panel",
-    selected = translate("Select Variables", "en", dictionary),
+    selected = translate("Select Variables", language = language_selected, dictionary),
     tabPanel(
-      title = translate("Select Variables", "en", dictionary),
+      title = translate("Select Variables", language = language_selected, dictionary),
       column(
         6,
         fluidRow(
@@ -25,7 +39,7 @@ linear_model_modal <- modalDialog(
         fluidRow(
           checkboxInput(
             inputId = "lm_intercept",
-            label = translate("Intercept", "en", dictionary),
+            label = translate("Intercept", language = language_selected, dictionary),
             value = TRUE
           )
         ),
@@ -40,7 +54,7 @@ linear_model_modal <- modalDialog(
             align = "center",
             actionButton(
               inputId = "lm_show_fixed_prior",
-              label = translate("Edit priors", "en", dictionary)
+              label = translate("Edit priors", language = language_selected, dictionary)
             )
           )
         ),
@@ -51,20 +65,19 @@ linear_model_modal <- modalDialog(
       )
     ),
     tabPanel(
-      title = translate("Hyperpriors", "en", dictionary),
+      title = translate("Hyperpriors", language = language_selected, dictionary),
       fluidRow(
         column(6, selectInput(
           inputId = "lm_family_input",
-          label = translate("Family", "en", dictionary),
+          label = translate("Family", language = language_selected, dictionary),
           choices = lm_family,
           selected = "normal"
         )),
         column(6, uiOutput("lm_ui_hyper_prior"))
       )
     )
-  ),
-  tags$head(tags$style(".modal-footer{border-top: 0 none}"))
-)
+  )
+})
 
 observeEvent(input$lm_show_fixed_prior, {
   shinyjs::toggle(id = "lm_uiPrioriMean")
@@ -78,7 +91,7 @@ observeEvent(input$linear_action_btn, {
 observeEvent(c(input$lm_covariates, input$lm_responseVariable, input$lm_intercept), {
   if ((length(input$lm_covariates) + input$lm_intercept) == 0) {
     shinyjs::show(id = "lm_error_no_covariate")
-    output$lm_error_no_covariate <- renderText(translate("Error: no covariates selected", "en", dictionary))
+    output$lm_error_no_covariate <- renderText(translate("Error: no covariates selected", language = language_selected, dictionary))
     shinyjs::disable(id = "lm_ok")
   } else {
     shinyjs::hide(id = "lm_error_no_covariate")
@@ -94,7 +107,7 @@ output$lm_uiResponse <- renderUI({
   }
   radioGroupButtons(
     inputId = "lm_responseVariable",
-    label = translate("Select the response variable", "en", dictionary),
+    label = translate("Select the response variable", language = language_selected, dictionary),
     choices = data_input()$covariates,
     justified = TRUE,
     checkIcon = list(
@@ -110,7 +123,7 @@ output$lm_uiCovariates <- renderUI({
   }
   checkboxGroupButtons(
     inputId = "lm_covariates",
-    label = translate("Select the covariates", "en", dictionary),
+    label = translate("Select the covariates", language = language_selected, dictionary),
     choices = data_input()$covariates[data_input()$covariates != input$lm_responseVariable],
     selected = data_input()$covariates[data_input()$covariates != input$lm_responseVariable],
     justified = TRUE,
@@ -197,7 +210,7 @@ output$lm_ui_hyper_prior <- renderUI({
     fluidRow(column(
       6, selectInput(
         inputId = paste0("lm_hyper_dist_", number),
-        label = paste0(translate("Select the distribution of ", "en", dictionary), name_hyper(input$lm_family_input, number)),
+        label = paste0(translate("Select the distribution of ", language = language_selected, dictionary), name_hyper(input$lm_family_input, number)),
         choices = priors_distributions,
         selected = hyper_default(input$lm_family_input, number),
         multiple = FALSE
@@ -215,7 +228,7 @@ output$lm_numeric_input_hyper_1 <- renderUI({
   lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("lm_hyper_dist_1")]]), hyper_default(input$lm_family_input, 1), input[[ paste0("lm_hyper_dist_", 1)]])), function(n_param) {
     numericInput(
       inputId = paste0("lm_input_hyper_1_param_", n_param),
-      label = paste0(translate("Parameter ", "en", dictionary), n_param),
+      label = paste0(translate("Parameter ", language = language_selected, dictionary), n_param),
       value = hyper_default_param(input$lm_family_input, 1)[n_param]
     )
   })
@@ -229,7 +242,7 @@ output$lm_numeric_input_hyper_2 <- renderUI({
   lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("lm_hyper_dist_2")]]), hyper_default(input$lm_family_input, 2), input[[ paste0("lm_hyper_dist_", 2)]])), function(n_param) {
     numericInput(
       inputId = paste0("lm_input_hyper_2_param_", n_param),
-      label = paste0(translate("Parameter ", "en", dictionary), n_param),
+      label = paste0(translate("Parameter ", language = language_selected, dictionary), n_param),
       value = hyper_default_param(input$lm_family_input, 2)[n_param]
     )
   })
@@ -251,20 +264,20 @@ observeEvent(input$lm_ok, {
   if (lm_check_regression(input, lm_covariates_selected(), lm_priors, data_input()) == FALSE) {
     sendSweetAlert(
       session = session,
-      title = translate("Error", language = "en", dictionary = dictionary),
+      title = translate("Error", language = language_selected, dictionary = dictionary),
       text = tags$span(
         ifelse(!(is.numeric(data_input()$data[, input$lm_responseVariable])),
-          paste0(translate("-The response variable must be numeric", language = "en", dictionary)),
+          paste0(translate("-The response variable must be numeric", language = language_selected, dictionary)),
           ""
         ),
         tags$br(),
         ifelse(!(length(grep("lm_mean", names(input))) == 0) && any(is.na(lm_priors)),
-          paste0(translate("-The priors of fixed effects must be numeric", language = "en", dictionary)),
+          paste0(translate("-The priors of fixed effects must be numeric", language = language_selected, dictionary)),
           ""
         ),
         tags$br(),
         ifelse(!(length(grep("lm_hyper_dist", names(input))) == 0) && any(is.na(unlist(control_family_input(input)))),
-          paste0(translate("-The Hyperprioris must be numeric", language = "en", dictionary)),
+          paste0(translate("-The Hyperprioris must be numeric", language = language_selected, dictionary)),
           ""
         )
       ),
@@ -313,9 +326,9 @@ observeEvent(input$lm_ok, {
     if (class(lm_inla[[lm_output_name]]) == "try-error") {
       sendSweetAlert(
         session = session,
-        title = translate("Error in inla", language = "en", dictionary),
+        title = translate("Error in inla", language = language_selected, dictionary),
         text = tags$span(
-          translate("Inla has crashed. Try edit the fixed priors and/or the hyperpriors and rerun", language = "en", dictionary)
+          translate("INLA has crashed. INLA try to run and failed.", language = language_selected, dictionary)
         ),
         html = TRUE,
         type = "error",
@@ -351,7 +364,7 @@ observeEvent(input$lm_ok, {
       appendTab(
         inputId = "mytabs", select = TRUE,
         tabPanel(
-          title = paste0(translate("Model", "en", dictionary), lm_tabindex()),
+          title = paste0(translate("Model", language = language_selected, dictionary), lm_tabindex()),
           useShinydashboard(),
           useShinyjs(),
           fluidRow(
@@ -359,12 +372,12 @@ observeEvent(input$lm_ok, {
               width = 6,
               box(
                 id = paste0("lm_box_call_", lm_tabindex()),
-                title = translate("Call", "en", dictionary),
+                title = translate("Call", language = language_selected, dictionary),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 textOutput(outputId = paste0("lm_call", lm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_call", lm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_call", lm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_call", lm_tabindex()),
                   tags$code(
@@ -382,12 +395,12 @@ observeEvent(input$lm_ok, {
               width = 6,
               box(
                 id = paste0("lm_box_time_used", lm_tabindex()),
-                title = translate("Time Used", "en", dictionary),
+                title = translate("Time Used", language = language_selected, dictionary),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 dataTableOutput(outputId = paste0("lm_time_used_", lm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_time", lm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_time", lm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_time", lm_tabindex()),
                   tags$code(
@@ -407,12 +420,12 @@ observeEvent(input$lm_ok, {
               width = 12,
               box(
                 id = paste0("lm_box_fix_effects_", lm_tabindex()),
-                title = translate("Fixed Effects", "en", dictionary),
+                title = translate("Fixed Effects", language = language_selected, dictionary),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 dataTableOutput(outputId = paste0("lm_fix_effects_", lm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", lm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", lm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_fix_effects_", lm_tabindex()),
                   tags$code(
@@ -434,12 +447,12 @@ observeEvent(input$lm_ok, {
                   condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
                   box(
                     id = paste0("lm_box_model_hyper_", lm_tabindex()),
-                    title = translate("Model Hyperparameters", "en", dictionary),
+                    title = translate("Model Hyperparameters", language = language_selected, dictionary),
                     status = "primary",
                     solidHeader = TRUE,
                     width = 6,
                     dataTableOutput(outputId = paste0("lm_model_hyper_", lm_tabindex())),
-                    tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", lm_tabindex()))),
+                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", lm_tabindex()))),
                     tags$div(
                       class = "collapse", id = paste0("showcode_model_hyper_", lm_tabindex()),
                       tags$code(
@@ -455,12 +468,12 @@ observeEvent(input$lm_ok, {
                 ),
                 box(
                   id = paste0("lm_box_neffp_", lm_tabindex()),
-                  title = translate("Expected Effective Number of Parameters in the Model", "en", dictionary),
+                  title = translate("Expected Effective Number of Parameters in the Model", language = language_selected, dictionary),
                   status = "primary",
                   solidHeader = TRUE,
                   width = 6,
                   dataTableOutput(outputId = paste0("lm_neffp_", lm_tabindex())),
-                  tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", lm_tabindex()))),
+                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", lm_tabindex()))),
                   tags$div(
                     class = "collapse", id = paste0("showcode_neffp_", lm_tabindex()),
                     tags$code(
@@ -477,12 +490,12 @@ observeEvent(input$lm_ok, {
                   condition = "(input.ccompute_input_4 != '' &&  input.ccompute_input_4 == true)",
                   box(
                     id = paste0("lm_box_dic_waic_", lm_tabindex()),
-                    title = translate("DIC and WAIC", "en", dictionary),
+                    title = translate("DIC and WAIC", language = language_selected, dictionary),
                     status = "primary",
                     solidHeader = TRUE,
                     width = 6,
                     dataTableOutput(outputId = paste0("lm_dic_waic_", lm_tabindex())),
-                    tags$b(tags$a(icon("code"), translate("Show code", "en", dictionary), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", lm_tabindex()))),
+                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", lm_tabindex()))),
                     tags$div(
                       class = "collapse", id = paste0("showcode_dic_waic_", lm_tabindex()),
                       tags$code(
