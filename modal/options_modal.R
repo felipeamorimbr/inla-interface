@@ -32,7 +32,7 @@ observeEvent(input$ok_btn_options_modal, {
 #   confirmSweetAlert(
 #     session = session,
 #     inputId = "change_language_confirm",
-#     title = translate("Confirm the language change?", language = language_selected, dictionary),
+#     title = translate("Confirm the language change?", language = language_selected, options_modal_words),
 #     text = NULL,
 #     type = "question"
 #   )
@@ -49,12 +49,12 @@ observeEvent(input$ok_btn_options_modal, {
 observeEvent(input$options_action_btn, {
   options_modal <- modalDialog( ## -- DOUGLAS: Criando o modal aqui dentro. Desta forma ele vai ser recriado toda vez que clicar em opções
     useShinyjs(),
-    title = translate("Options", language = language_selected, dictionary),
+    title = translate("Options", language = language_selected, options_modal_words),
     fade = FALSE,
     size = "l",
     footer = tagList(
-      actionButton("ok_btn_options_modal", translate("Ok", language = language_selected, dictionary)),
-      modalButton(translate("Cancel", language = language_selected, dictionary))
+      actionButton("ok_btn_options_modal", translate("Ok", language = language_selected, options_modal_words)),
+      modalButton(translate("Cancel", language = language_selected, options_modal_words))
     ),
     fluidPage(
       tabsetPanel(
@@ -62,13 +62,13 @@ observeEvent(input$options_action_btn, {
           "Control Compute",
           fluidRow(selectInput(
             inputId = "ccompute_input_1",
-            label = translate("Computational strategy", language = language_selected, dictionary),
+            label = translate("Computational strategy", language = language_selected, options_modal_words),
             choices = list(
-              "small" = translate("Small", language = language_selected, dictionary),
-              "medium" = translate("Medium", language = language_selected, dictionary),
-              "large" = translate("Large", language = language_selected, dictionary),
-              "huge" =  translate("Huge", language = language_selected, dictionary),
-              "default" = translate("Default", language = language_selected, dictionary)
+              "small" = translate("Small", language = language_selected, options_modal_words),
+              "medium" = translate("Medium", language = language_selected, options_modal_words),
+              "large" = translate("Large", language = language_selected, options_modal_words),
+              "huge" =  translate("Huge", language = language_selected, options_modal_words),
+              "default" = translate("Default", language = language_selected, options_modal_words)
             ),
             selected = control_compute_input[[1]],
             multiple = FALSE,
@@ -76,27 +76,27 @@ observeEvent(input$options_action_btn, {
           )),
           fluidRow(checkboxInput(
             inputId = "ccompute_input_2",
-            label = translate("Compute the marginal of hyperparameters", language = language_selected, dictionary),
+            label = translate("Compute the marginal of hyperparameters", language = language_selected, options_modal_words),
             value = control_compute_input[[2]]
           )),
           fluidRow(checkboxInput(
             inputId = "ccompute_input_3",
-            label = translate("Return the marginal of latent field", language = language_selected, dictionary),
+            label = translate("Return the marginal of latent field", language = language_selected, options_modal_words),
             value = control_compute_input[[3]]
           )),
           fluidRow(checkboxInput(
             inputId = "ccompute_input_4",
-            label = translate("Compute the DIC-value and WAIC", language = language_selected, dictionary),
+            label = translate("Compute the DIC-value and WAIC", language = language_selected, options_modal_words),
             value = globalenv()$control_compute_input[[4]]
           ))
           # fluidRow(checkboxInput(
           #   inputId = "ccompute_input_5",
-          #   label = translate("Compute the marginal likelihood", language = language_selected, dictionary),
+          #   label = translate("Compute the marginal likelihood", language = language_selected, options_modal_words),
           #   value = control_compute_input[[5]]
           # )),
           # fluidRow(checkboxInput(
           #   inputId = "ccompute_input_6",
-          #   label = translate("Compute the CPO", language = language_selected, dictionary),
+          #   label = translate("Compute the CPO", language = language_selected, options_modal_words),
           #   value = control_compute_input[[6]]
           # )),
           # fluidRow(checkboxInput(
@@ -148,10 +148,10 @@ observeEvent(input$options_action_btn, {
           "Control INLA",
           fluidRow(selectInput(
             inputId = "cinla_input_1",
-            label = translate("Approximation strategy", language = language_selected, dictionary),
+            label = translate("Approximation strategy", language = language_selected, options_modal_words),
             choices = list(
-              "gaussian" = translate("Gaussian", language = language_selected, dictionary),
-              "simplified.laplace" = translate("Simplified Laplace", language = language_selected, dictionary),
+              "gaussian" = translate("Gaussian", language = language_selected, options_modal_words),
+              "simplified.laplace" = translate("Simplified Laplace", language = language_selected, options_modal_words),
               "Laplace" = "laplace"
             ),
             selected = "simplified.laplace",
@@ -160,7 +160,7 @@ observeEvent(input$options_action_btn, {
           )),
           fluidRow(selectInput(
             inputId = "cinla_input_2",
-            label = translate("Integration strategy", language = language_selected, dictionary),
+            label = translate("Integration strategy", language = language_selected, options_modal_words),
             choices = list(
               "auto" = "auto",
               "ccd" = "ccd",
@@ -175,7 +175,7 @@ observeEvent(input$options_action_btn, {
           )),
           fluidRow(checkboxInput(
             inputId = "cinla_input_5",
-            label = translate("Replace conditional modes in the Laplace approximation with conditional expectation", language = language_selected, dictionary),
+            label = translate("Replace conditional modes in the Laplace approximation with conditional expectation", language = language_selected, options_modal_words),
             value = TRUE
           ))
         )

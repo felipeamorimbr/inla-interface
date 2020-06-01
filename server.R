@@ -13,12 +13,4 @@ server <- function(input, output, session) {
   
   #General Linear Model Modal
   source("modal/glm_modal.R", local = TRUE)
-  
-  # output$File <- renderText({
-  #   switch(language_selected, "en" = "File", "pt-br" = "Arquivo")
-  # })
-  # 
-  # output$File2 <- renderText({
-  #   switch(language_selected, "en" = "File", "pt-br" = "Arquivo")
-  # })
 }

@@ -1,35 +1,24 @@
 # Modal Dialog Linear Model
 
 # Modal Dialog' UI ----
-linear_model_modal <- modalDialog(
-  useShinyjs(),
-  useSweetAlert(),
-  title = translate("Linear Regression", language = language_selected, dictionary),
-  fade = FALSE,
-  size = "l",
-  footer = tagList(
-    actionButton("lm_ok", uiOutput(outputId = "lm_txt_ok")),
-    modalButton(uiOutput(outputId = "lm_txt_cancel"))
-  ),
-  uiOutput(outputId = "lm_main_UI"),
-  tags$head(tags$style(".modal-footer{border-top: 0 none}"))
-)
-
-output$lm_txt_ok <- renderText({
-  translate("OK", language = language_selected, dictionary)
-})
-
-output$lm_txt_ok <- renderText({
-  translate("Cancel", language = language_selected, dictionary)
-})
+# linear_model_modal <- modalDialog(
+#   useShinyjs(),
+#   useSweetAlert(),
+#   title = translate("Linear Regression", language = language_selected, lm_modal_words),
+#   fade = FALSE,
+#   size = "l",
+#   footer = uiOutput(outputId = "lm_footer"),
+#   uiOutput(outputId = "lm_main_UI"),
+#   tags$head(tags$style(".modal-footer{border-top: 0 none}"))
+# )
 
 
 output$lm_main_UI <- renderUI({
   tabsetPanel(
     id = "linear_panel",
-    selected = translate("Select Variables", language = language_selected, dictionary),
+    selected = translate("Select Variables", language = language_selected, lm_modal_words),
     tabPanel(
-      title = translate("Select Variables", language = language_selected, dictionary),
+      title = translate("Select Variables", language = language_selected, lm_modal_words),
       column(
         6,
         fluidRow(
@@ -39,7 +28,7 @@ output$lm_main_UI <- renderUI({
         fluidRow(
           checkboxInput(
             inputId = "lm_intercept",
-            label = translate("Intercept", language = language_selected, dictionary),
+            label = translate("Intercept", language = language_selected, lm_modal_words),
             value = TRUE
           )
         ),
@@ -54,7 +43,7 @@ output$lm_main_UI <- renderUI({
             align = "center",
             actionButton(
               inputId = "lm_show_fixed_prior",
-              label = translate("Edit priors", language = language_selected, dictionary)
+              label = translate("Edit priors", language = language_selected, lm_modal_words)
             )
           )
         ),
@@ -65,11 +54,11 @@ output$lm_main_UI <- renderUI({
       )
     ),
     tabPanel(
-      title = translate("Hyperpriors", language = language_selected, dictionary),
+      title = translate("Hyperpriors", language = language_selected, lm_modal_words),
       fluidRow(
         column(6, selectInput(
           inputId = "lm_family_input",
-          label = translate("Family", language = language_selected, dictionary),
+          label = translate("Family", language = language_selected, lm_modal_words),
           choices = lm_family,
           selected = "normal"
         )),
@@ -84,14 +73,32 @@ observeEvent(input$lm_show_fixed_prior, {
   shinyjs::toggle(id = "lm_uiPrioriPrec")
 })
 
+output$lm_footer <- renderUI({
+  fluidRow(column(
+    12,
+    actionButton(inputId = "lm_ok", label = translate("Ok", language = language_selected, lm_modal_words)),
+    modalButton(label = translate("Cancel", language = language_selected, lm_modal_words))
+  ))
+})
+
 observeEvent(input$linear_action_btn, {
-  showModal(linear_model_modal)
+  showModal(modalDialog(
+    useShinyjs(),
+    useSweetAlert(),
+    title = translate("Linear Regression", language = language_selected, lm_modal_words),
+    fade = FALSE,
+    size = "l",
+    footer = uiOutput(outputId = "lm_footer"),
+    uiOutput(outputId = "lm_main_UI"),
+    tags$head(tags$style(".modal-footer{border-top: 0 none}"))
+  )
+  )
 })
 
 observeEvent(c(input$lm_covariates, input$lm_responseVariable, input$lm_intercept), {
   if ((length(input$lm_covariates) + input$lm_intercept) == 0) {
     shinyjs::show(id = "lm_error_no_covariate")
-    output$lm_error_no_covariate <- renderText(translate("Error: no covariates selected", language = language_selected, dictionary))
+    output$lm_error_no_covariate <- renderText(translate("Error: no covariates selected", language = language_selected, lm_modal_words))
     shinyjs::disable(id = "lm_ok")
   } else {
     shinyjs::hide(id = "lm_error_no_covariate")
@@ -99,15 +106,15 @@ observeEvent(c(input$lm_covariates, input$lm_responseVariable, input$lm_intercep
   }
 })
 
-#Select Variable's UI ----
-#UI to select response variable
+# Select Variable's UI ----
+# UI to select response variable
 output$lm_uiResponse <- renderUI({
   if (is.null(data_input()$n.variables)) {
     return()
   }
   radioGroupButtons(
     inputId = "lm_responseVariable",
-    label = translate("Select the response variable", language = language_selected, dictionary),
+    label = translate("Select the response variable", language = language_selected, lm_modal_words),
     choices = data_input()$covariates,
     justified = TRUE,
     checkIcon = list(
@@ -116,14 +123,14 @@ output$lm_uiResponse <- renderUI({
   )
 })
 
-#UI to select covariates
+# UI to select covariates
 output$lm_uiCovariates <- renderUI({
   if (is.null(data_input()$n.variables)) {
     return()
   }
   checkboxGroupButtons(
     inputId = "lm_covariates",
-    label = translate("Select the covariates", language = language_selected, dictionary),
+    label = translate("Select the covariates", language = language_selected, lm_modal_words),
     choices = data_input()$covariates[data_input()$covariates != input$lm_responseVariable],
     selected = data_input()$covariates[data_input()$covariates != input$lm_responseVariable],
     justified = TRUE,
@@ -135,7 +142,7 @@ output$lm_uiCovariates <- renderUI({
   )
 })
 
-#Element with selected variable
+# Element with selected variable
 lm_covariates_selected <- eventReactive(c(input$lm_responseVariable, input$lm_covariates, input$lm_intercept), {
   if (input$lm_intercept == TRUE) {
     if (is.null(input$lm_covariates)) {
@@ -166,12 +173,12 @@ lm_covariates_selected <- eventReactive(c(input$lm_responseVariable, input$lm_co
 })
 
 
-#Fixed Effects' UI ----
-#Column to select mean priors to fixed effects
-output$lm_uiPrioriMean <- renderUI({ 
+# Fixed Effects' UI ----
+# Column to select mean priors to fixed effects
+output$lm_uiPrioriMean <- renderUI({
   if (is.null(data_input()$n.variables)) {
     return()
-  } 
+  }
   lapply(1:lm_covariates_selected()$n_covariates, function(number) {
     fluidRow(
       column(
@@ -186,8 +193,8 @@ output$lm_uiPrioriMean <- renderUI({
   })
 })
 
-#Column to select prec priors to fixed effects
-output$lm_uiPrioriPrec <- renderUI({ 
+# Column to select prec priors to fixed effects
+output$lm_uiPrioriPrec <- renderUI({
   if (is.null(data_input()$n.variables) || (length(input$lm_covariates) + input$lm_intercept) == 0) {
     return()
   }
@@ -202,7 +209,7 @@ output$lm_uiPrioriPrec <- renderUI({
   })
 })
 
-#Hyperpriors' UI and select Family ----
+# Hyperpriors' UI and select Family ----
 
 # Create the UI with options to user select hyper priors distributions
 output$lm_ui_hyper_prior <- renderUI({
@@ -210,7 +217,7 @@ output$lm_ui_hyper_prior <- renderUI({
     fluidRow(column(
       6, selectInput(
         inputId = paste0("lm_hyper_dist_", number),
-        label = paste0(translate("Select the distribution of ", language = language_selected, dictionary), name_hyper(input$lm_family_input, number)),
+        label = paste0(translate("Select the distribution of ", language = language_selected, lm_modal_words), name_hyper(input$lm_family_input, number)),
         choices = priors_distributions,
         selected = hyper_default(input$lm_family_input, number),
         multiple = FALSE
@@ -222,13 +229,13 @@ output$lm_ui_hyper_prior <- renderUI({
 
 # Create the UI with options to user input the values of the first hyperparamether
 output$lm_numeric_input_hyper_1 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("lm_hyper_dist_1")]]), hyper_default(input$lm_family_input, 1), input[[ paste0("lm_hyper_dist_", 1)]])) == 0) {
+  if (n_param_prior(ifelse(is.null(input[[paste0("lm_hyper_dist_1")]]), hyper_default(input$lm_family_input, 1), input[[paste0("lm_hyper_dist_", 1)]])) == 0) {
     return()
   }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("lm_hyper_dist_1")]]), hyper_default(input$lm_family_input, 1), input[[ paste0("lm_hyper_dist_", 1)]])), function(n_param) {
+  lapply(1:n_param_prior(ifelse(is.null(input[[paste0("lm_hyper_dist_1")]]), hyper_default(input$lm_family_input, 1), input[[paste0("lm_hyper_dist_", 1)]])), function(n_param) {
     numericInput(
       inputId = paste0("lm_input_hyper_1_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, dictionary), n_param),
+      label = paste0(translate("Parameter ", language = language_selected, lm_modal_words), n_param),
       value = hyper_default_param(input$lm_family_input, 1)[n_param]
     )
   })
@@ -236,13 +243,13 @@ output$lm_numeric_input_hyper_1 <- renderUI({
 
 # Create the UI with options to user input the values of the second hyperparamether
 output$lm_numeric_input_hyper_2 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("lm_hyper_dist_2")]]), hyper_default(input$lm_family_input, 2), input[[ paste0("lm_hyper_dist_", 2)]])) == 0) {
+  if (n_param_prior(ifelse(is.null(input[[paste0("lm_hyper_dist_2")]]), hyper_default(input$lm_family_input, 2), input[[paste0("lm_hyper_dist_", 2)]])) == 0) {
     return()
   }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("lm_hyper_dist_2")]]), hyper_default(input$lm_family_input, 2), input[[ paste0("lm_hyper_dist_", 2)]])), function(n_param) {
+  lapply(1:n_param_prior(ifelse(is.null(input[[paste0("lm_hyper_dist_2")]]), hyper_default(input$lm_family_input, 2), input[[paste0("lm_hyper_dist_", 2)]])), function(n_param) {
     numericInput(
       inputId = paste0("lm_input_hyper_2_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, dictionary), n_param),
+      label = paste0(translate("Parameter ", language = language_selected, lm_modal_words), n_param),
       value = hyper_default_param(input$lm_family_input, 2)[n_param]
     )
   })
@@ -258,26 +265,26 @@ observeEvent(input$lm_ok, {
   # Create the matrix used in control_fixed_input
   lm_priors <- matrix(NA_real_, nrow = lm_covariates_selected()$n_covariates, ncol = 2)
   for (i in 1:lm_covariates_selected()$n_covariates) {
-    lm_priors[i, 1] <- ifelse("lm_prec1" %in% names(input), input[[  ifelse(i == 1, paste0("lm_mean1"), paste0("lm_mean", lm_covariates_selected()$names[i]))]], NA_real_)
-    lm_priors[i, 2] <- ifelse("lm_prec1" %in% names(input), input[[  ifelse(i == 1, paste0("lm_prec1"), paste0("lm_prec", lm_covariates_selected()$names[i]))]], NA_real_)
+    lm_priors[i, 1] <- ifelse("lm_prec1" %in% names(input), input[[ifelse(i == 1, paste0("lm_mean1"), paste0("lm_mean", lm_covariates_selected()$names[i]))]], NA_real_)
+    lm_priors[i, 2] <- ifelse("lm_prec1" %in% names(input), input[[ifelse(i == 1, paste0("lm_prec1"), paste0("lm_prec", lm_covariates_selected()$names[i]))]], NA_real_)
   }
   if (lm_check_regression(input, lm_covariates_selected(), lm_priors, data_input()) == FALSE) {
     sendSweetAlert(
       session = session,
-      title = translate("Error", language = language_selected, dictionary = dictionary),
+      title = translate("Error", language = language_selected, lm_modal_words = lm_modal_words),
       text = tags$span(
         ifelse(!(is.numeric(data_input()$data[, input$lm_responseVariable])),
-          paste0(translate("-The response variable must be numeric", language = language_selected, dictionary)),
+          paste0(translate("-The response variable must be numeric", language = language_selected, lm_modal_words)),
           ""
         ),
         tags$br(),
         ifelse(!(length(grep("lm_mean", names(input))) == 0) && any(is.na(lm_priors)),
-          paste0(translate("-The priors of fixed effects must be numeric", language = language_selected, dictionary)),
+          paste0(translate("-The priors of fixed effects must be numeric", language = language_selected, lm_modal_words)),
           ""
         ),
         tags$br(),
         ifelse(!(length(grep("lm_hyper_dist", names(input))) == 0) && any(is.na(unlist(control_family_input(input)))),
-          paste0(translate("-The Hyperprioris must be numeric", language = language_selected, dictionary)),
+          paste0(translate("-The Hyperprioris must be numeric", language = language_selected, lm_modal_words)),
           ""
         )
       ),
@@ -326,9 +333,9 @@ observeEvent(input$lm_ok, {
     if (class(lm_inla[[lm_output_name]]) == "try-error") {
       sendSweetAlert(
         session = session,
-        title = translate("Error in inla", language = language_selected, dictionary),
+        title = translate("Error in inla", language = language_selected, lm_modal_words),
         text = tags$span(
-          translate("INLA has crashed. INLA try to run and failed.", language = language_selected, dictionary)
+          translate("INLA has crashed. INLA try to run and failed.", language = language_selected, lm_modal_words)
         ),
         html = TRUE,
         type = "error",
@@ -364,7 +371,7 @@ observeEvent(input$lm_ok, {
       appendTab(
         inputId = "mytabs", select = TRUE,
         tabPanel(
-          title = paste0(translate("Model", language = language_selected, dictionary), lm_tabindex()),
+          title = paste0(translate("Model", language = language_selected, lm_modal_words), lm_tabindex()),
           useShinydashboard(),
           useShinyjs(),
           fluidRow(
@@ -372,12 +379,12 @@ observeEvent(input$lm_ok, {
               width = 6,
               box(
                 id = paste0("lm_box_call_", lm_tabindex()),
-                title = translate("Call", language = language_selected, dictionary),
+                title = translate("Call", language = language_selected, lm_modal_words),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 textOutput(outputId = paste0("lm_call", lm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_call", lm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_call", lm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_call", lm_tabindex()),
                   tags$code(
@@ -395,12 +402,12 @@ observeEvent(input$lm_ok, {
               width = 6,
               box(
                 id = paste0("lm_box_time_used", lm_tabindex()),
-                title = translate("Time Used", language = language_selected, dictionary),
+                title = translate("Time Used", language = language_selected, lm_modal_words),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 dataTableOutput(outputId = paste0("lm_time_used_", lm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_time", lm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_time", lm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_time", lm_tabindex()),
                   tags$code(
@@ -420,12 +427,12 @@ observeEvent(input$lm_ok, {
               width = 12,
               box(
                 id = paste0("lm_box_fix_effects_", lm_tabindex()),
-                title = translate("Fixed Effects", language = language_selected, dictionary),
+                title = translate("Fixed Effects", language = language_selected, lm_modal_words),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 dataTableOutput(outputId = paste0("lm_fix_effects_", lm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", lm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", lm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_fix_effects_", lm_tabindex()),
                   tags$code(
@@ -447,12 +454,12 @@ observeEvent(input$lm_ok, {
                   condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
                   box(
                     id = paste0("lm_box_model_hyper_", lm_tabindex()),
-                    title = translate("Model Hyperparameters", language = language_selected, dictionary),
+                    title = translate("Model Hyperparameters", language = language_selected, lm_modal_words),
                     status = "primary",
                     solidHeader = TRUE,
                     width = 6,
                     dataTableOutput(outputId = paste0("lm_model_hyper_", lm_tabindex())),
-                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", lm_tabindex()))),
+                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", lm_tabindex()))),
                     tags$div(
                       class = "collapse", id = paste0("showcode_model_hyper_", lm_tabindex()),
                       tags$code(
@@ -468,12 +475,12 @@ observeEvent(input$lm_ok, {
                 ),
                 box(
                   id = paste0("lm_box_neffp_", lm_tabindex()),
-                  title = translate("Expected Effective Number of Parameters in the Model", language = language_selected, dictionary),
+                  title = translate("Expected Effective Number of Parameters in the Model", language = language_selected, lm_modal_words),
                   status = "primary",
                   solidHeader = TRUE,
                   width = 6,
                   dataTableOutput(outputId = paste0("lm_neffp_", lm_tabindex())),
-                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", lm_tabindex()))),
+                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", lm_tabindex()))),
                   tags$div(
                     class = "collapse", id = paste0("showcode_neffp_", lm_tabindex()),
                     tags$code(
@@ -490,12 +497,12 @@ observeEvent(input$lm_ok, {
                   condition = "(input.ccompute_input_4 != '' &&  input.ccompute_input_4 == true)",
                   box(
                     id = paste0("lm_box_dic_waic_", lm_tabindex()),
-                    title = translate("DIC and WAIC", language = language_selected, dictionary),
+                    title = translate("DIC and WAIC", language = language_selected, lm_modal_words),
                     status = "primary",
                     solidHeader = TRUE,
                     width = 6,
                     dataTableOutput(outputId = paste0("lm_dic_waic_", lm_tabindex())),
-                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, dictionary), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", lm_tabindex()))),
+                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", lm_tabindex()))),
                     tags$div(
                       class = "collapse", id = paste0("showcode_dic_waic_", lm_tabindex()),
                       tags$code(
@@ -522,12 +529,12 @@ observeEvent(input$lm_ok, {
       # "Server" of result tab
 
       # Call
-      output[[ paste0("lm_call", lm_tabindex()) ]] <- renderText({
+      output[[paste0("lm_call", lm_tabindex())]] <- renderText({
         lm_inla_call_print[[lm_output_name]]
       })
 
       # Time Used
-      output[[ paste0("lm_time_used_", lm_tabindex()) ]] <- renderDataTable({
+      output[[paste0("lm_time_used_", lm_tabindex())]] <- renderDataTable({
         data_time_used <- lm_inla[[lm_output_name]][["cpu.used"]] %>%
           t() %>%
           as.data.frame(row.names = c("Time")) %>%
@@ -543,7 +550,7 @@ observeEvent(input$lm_ok, {
       })
 
       # Fixed Effects
-      output[[ paste0("lm_fix_effects_", lm_tabindex())]] <- renderDataTable(
+      output[[paste0("lm_fix_effects_", lm_tabindex())]] <- renderDataTable(
         {
           lm_inla[[lm_output_name]][["summary.fixed"]] %>%
             round(digits = 5)
@@ -555,7 +562,7 @@ observeEvent(input$lm_ok, {
       )
 
       # Model Hyper
-      output[[ paste0("lm_model_hyper_", lm_tabindex())]] <- renderDataTable(
+      output[[paste0("lm_model_hyper_", lm_tabindex())]] <- renderDataTable(
         {
           lm_inla[[lm_output_name]][["summary.hyperpar"]] %>%
             round(digits = 5)
@@ -567,7 +574,7 @@ observeEvent(input$lm_ok, {
       )
 
       # Others (neffp)
-      output[[ paste0("lm_neffp_", lm_tabindex())]] <- renderDataTable(
+      output[[paste0("lm_neffp_", lm_tabindex())]] <- renderDataTable(
         {
           lm_neffp_dataframe <- lm_inla[[lm_output_name]][["neffp"]] %>%
             round(digits = 5)
@@ -581,7 +588,7 @@ observeEvent(input$lm_ok, {
       )
 
       # Devicance Information Criterion (DIC)
-      output[[ paste0("lm_dic_waic_", lm_tabindex())]] <- renderDataTable(
+      output[[paste0("lm_dic_waic_", lm_tabindex())]] <- renderDataTable(
         {
           data.frame(
             "DIC" = lm_inla[[lm_output_name]][["dic"]][["dic"]],
