@@ -8,7 +8,7 @@ library(rhandsontable)
 library(shinyWidgets)
 library(DT)
 library(shinydashboard)
-library(enc)
+
 
 #Functions Used
 source("functions/file_ext.R")
@@ -19,6 +19,11 @@ source("functions/check_if_is_different.R")
 source("functions/translate.R")
 source("functions/check_lm_ok.R")
 source("functions/check_glm_ok.R")
+
+#Modules 
+source("Modules/fixed_effect_priors.R")
+source("Modules/sel_family.R")
+source("Modules/sel_formula.R")
 
 #Data loaded
 load("data/avaliable_languages_RData.RData")
@@ -35,7 +40,7 @@ control_compute_input[[11]] <- inla.getOption("smtp")
 control_inla_input <- inla.set.control.inla.default()
 
 priors_distributions <- names(inla.models()$prior)
-priors_distributions <- priors_distributions[-c(37,38)]
+priors_distributions <- priors_distributions[priors_distributions != c("expression:",  "table:")]
 
 lm_family <- c("gaussian", "t")
 glm_family <- names(inla.models()$likelihood)

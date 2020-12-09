@@ -1,6 +1,6 @@
 # Check if input is ok to make the linear regression
 
-lm_check_regression <- function(input, covariates_selected = covariates_selected, prioris, data) {
+lm_check_regression <- function(input, covariates_selected = covariates_selected, lm_priors, data) {
   if(!(length(grep("lm_mean", names(input))) == 0) && any(is.na(lm_priors))){ #Check if fixed effects prioris are all numeric
     return(FALSE)
   }

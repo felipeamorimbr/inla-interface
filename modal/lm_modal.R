@@ -271,7 +271,7 @@ observeEvent(input$lm_ok, {
   if (lm_check_regression(input, lm_covariates_selected(), lm_priors, data_input()) == FALSE) {
     sendSweetAlert(
       session = session,
-      title = translate("Error", language = language_selected, lm_modal_words = lm_modal_words),
+      title = translate("Error", language = language_selected, dictionary = lm_modal_words),
       text = tags$span(
         ifelse(!(is.numeric(data_input()$data[, input$lm_responseVariable])),
           paste0(translate("-The response variable must be numeric", language = language_selected, lm_modal_words)),

@@ -13,10 +13,19 @@ observeEvent(input$file_load_btn, {
                  ),
                  smNavDropdown(
                    label = translate("Models", language = language_selected, main_UI_words),
-                   smAction("linear_action_btn", translate("Linear Regression", language = language_selected, main_UI_words)),
+                   # smAction("linear_action_btn", translate("Linear Regression", language = language_selected, main_UI_words)),
+                   smAction("linear_action_btn_2", "Linear Regression"),
                    smAction("glm_action_btn", translate("Hierarchical Linear Models", language = language_selected, main_UI_words))
                  ),
                  actionButton("options_action_btn", translate("Options", language = language_selected, main_UI_words))
+                 # ,smNavDropdown(
+                 #   label = "Download",
+                 #   smHeader("Data"),
+                 #   downloadButton(outputId = "download_data", label = translate("Download data", language = language_selected, main_UI_words)),
+                 #   uiOutput(outputId = "download_lm_model_data_ui"),
+                 #   uiOutput(outputId = "download_glm_model_data_ui"),
+                 #   textOutput(outputId = "no_download_avaliable")
+                 # )
         )
       ),
       tabsetPanel(
@@ -49,3 +58,20 @@ observeEvent(input$file_load_btn, {
     )
   })
 })
+
+
+
+# observeEvent(c(input$lm_ok, input$glm_ok),{
+#   if(lm_tabindex() + glm_tabindex() == 0){
+#     output$no_downoad_avaliable <- renderText("No Download Avaliable")
+#   }else{
+#     if(lm_tabindex() > 0){
+#       output$download_lm_model_data_ui <- renderUI({
+#         lapply(1:lm_tabindex(), function(n_lm_models){
+#           
+#         })
+#       })
+#     }
+#   }
+#   
+# })

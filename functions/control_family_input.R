@@ -6,7 +6,7 @@ n_hyper <- function(family, ...){
 control_family_input <- function(...){
   n_hyper_input <- n_hyper(family_input)
   hyper <- list()
-  
+  browser()
   for(i in 1:n_hyper_input){
     hyper[[ shortname_hyper(family_input, i) ]] <- list(prior = paste0("input$input_hyper_dist_", n_hyper_input))
     for(j in 1:n_param_prior(paste0("input$input_hyper_dist_", n_hyper_input))){

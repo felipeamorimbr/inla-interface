@@ -36,21 +36,51 @@ file_modal <- modalDialog(
   )
 )
 
+
+
+
 ## -- Modal Observe Events ----
 showModal(file_modal)
-
-observeEvent(input$file_action_btn, {
-  showModal(file_modal)
-})
 
 observeEvent(input$file_load_btn, {
   rlang::env_bind(.env = globalenv(), language_selected = input$language)
   removeModal()
+  shinyjs::hide(id = "language")
 })
 
-# observeEvent(input$language, {
-# 
-# })
+observeEvent(input$file_action_btn, {
+  showModal(file_modal)
+  observeEvent(input$file_new_load_btn, {
+    removeTab(inputId = "mytabs", target = translate("Data", language = language_selected, main_UI_words))
+    prependTab(inputId = "mytabs", select = TRUE, tab = tabPanel(
+      title = translate("Data", language = language_selected, main_UI_words),
+      fluidRow(
+        box(
+          id = "box_new_summary",
+          title = translate("Summary", language = language_selected, main_UI_words),
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          dataTableOutput(outputId = "file_new_data_summary_ui")
+        )
+      ),
+      fluidRow(
+        box(
+          id = "box_data_new",
+          title = translate("Data", language = language_selected, main_UI_words),
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          rHandsontableOutput(outputId = "data_new")
+        )
+      ),
+      hr()  
+    ))
+  })
+  
+})
+
+
 
 observeEvent(input$file, {
   if (!is.null(input$file) && (file_ext(input$file$datapath) %in% accetable_formats)) {
