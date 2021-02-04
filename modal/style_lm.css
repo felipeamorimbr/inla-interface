@@ -1,0 +1,7 @@
+.modal.in .modal-dialog {
+  width: 60%;
+}
+
+.modal-body{ 
+  min-height: 75vh;
+}

@@ -1,56 +1,473 @@
 # Modal for Linear Model
-observeEvent(input$linear_action_btn_2, {
-  showModal(modalDialog(
+lm_data <- eventReactive(data_input(), {
+  list(
+    variables_not_selected = data_input()$covariates,
+    variables_selected = NULL,
+    resp_var = data_input()$covariates[1],
+    family_selected = lm_family[1],
+    intercept = TRUE,
+    fixed_effects = control_fixed_input(matrix(c(0,0), nrow = 1, ncol = 2), v.names = "", intercept = TRUE, covariates = NULL),
+    control_family = inla.set.control.family.default()
+  )
+})
+
+observeEvent(c(input$linear_action_btn_2, input$lm_box), {
+  validate(need(sum(input$linear_action_btn_2, input$lm_box) > 0, ""))
+  showModal(modalDialog(fluidPage(
+    includeCSS(path = "modal/style_lm.css"),
+    shinyjs::useShinyjs(),
     tabsetPanel(
       id = "lm_tabs", type = "tabs",
       tabPanel(
         title = "Select Variables",
-        sel_formula_ui(id = "lm_formula")
+        tags$br(),
+        new_chooser_UI(id = "lm_formula",
+                       respLabel = "Response", 
+                       selected_left = lm_data()$variables_not_selected,
+                       familyLabel = "Family",
+                       selected_right = lm_data()$variables_selected,
+                       familyChoices = lm_family)
       ),
       tabPanel(
         title = "Fixed Effects",
-        uiOutput("lm_fixed_ui")
-        # fixed_effects_priors_ui(id = "lm_fixed")
+        tags$br(),
+        fixed_effects_priors_ui(id = "lm_fixed")
       ),
       tabPanel(
-        title = "Family and Hyperpriors",
-        sel_family_ui(
+        title = "Hyperpriors",
+        sel_hyper_ui(
           id = "lm_family",
-          familyLabel = "Select Family",
-          familyChoices = lm_family
+          linkLabel = NULL
         )
       )
     ),
-    title = "Linear Model",
-    size = "l",
-    fade = FALSE,
-    footer = tagList(actionButton(inputId = "lm_ok", label = "Ok"), modalButton(label = "Cancel"))
+    tags$head(
+      tags$style(HTML(
+        "
+          .modal-header{
+          border-bottom-color: #12a19b;
+          }
+          "
+      ))
+    )
+  ),
+  title = "Linear Model",
+  size = "l",
+  fade = FALSE,
+  footer = tagList(actionButton(inputId = "lm_ok", label = "Ok"), actionButton(inputId = "lm_cancel", label = "Cancel"))
   ))
 })
 
-
-
-lm_formula_data <- sel_formula(
-  id = "lm_formula",
-  variables = data_input()$covariates,
-  resp_label = "Select Response Variable",
-  left_label = "Variables to Choose",
-  right_label = "Variables Selected"
+model_buttons$lm <- smAction("linear_action_btn_2", "Linear Regression")
+model_boxes$lm <- actionButton(
+  inputId = "lm_box_btn",
+  box_model_ui(id = "lm_box", name = "Linear Model", author = "Felipe Amorim", icon = "fa-chart-area", color = "#12a19b"),
+  style = "all:unset; color:black; cursor:pointer; outline:none;"
 )
 
 
+lm_formula_data <- new_chooser(
+  id = "lm_formula",  
+  selected_left = lm_data()$variables_not_selected, 
+  selected_right = NULL, 
+  rightLabel = "Covariates", 
+  leftLabel = "Covariates Selected"
+)
 
-lm_fixed_priors_data <- reactive({
-  p <- fixed_effects_priors(
-    id = "lm_fixed",
-    resp_variables = lm_formula_data$cov_var,
-    intercept = lm_formula_data$intercept
-  )
-  return(p)
+observeEvent(c(lm_formula_data$resp_var(), lm_formula_data$cov_var(), lm_formula_data$intercept()), {
+  # lm_data()$variables_selected <- ifelse(is.null(lm_formula_data$cov_var()), NULL, lm_formula_data$cov_var())
+  lm_fixed_priors_data <- fixed_effects_priors(
+  id = "lm_fixed",
+  resp_variables = lm_data()$variables_selected,
+  intercept = lm_data()$intercept
+)
 })
 
-lm_control_family <- sel_family(id = "lm_family", Link = FALSE)
+observeEvent(lm_formula_data$family(), {
+  useShinyjs()
+  validate(need(lm_formula_data, FALSE))
+  lm_control_family <- sel_hyper(id = "lm_family", Link = FALSE, sel_family = lm_data()$family)
+})
+
+observeEvent(input$lm_cancel, {
+new_chooser(
+  id = "lm_formula",
+  selected_left = NULL,
+  selected_right = NULL,
+  rightLabel = "Covariates",
+  leftLabel = "Covariates Selected"
+)
+fixed_effects_priors(
+  id = "lm_fixed",
+  resp_variables = NULL,
+  intercept = NULL
+)
+sel_hyper(id = "lm_family", Link = FALSE, sel_family = lm_formula_data$family())
+  removeModal()
+})
+
 lm_tabindex <- reactiveVal(0)
 observeEvent(input$lm_ok, {
+  lm_formula <- paste0(lm_formula_data$resp_var(), " ~ ", paste0(lm_formula_data$cov_var(), collapse = " + "), ifelse(lm_formula_data$intercept(), " + 1", " - 1"))
   browser()
+  lm_inla <- list()
+  lm_inla_call_print <- list()
+  lm_tabindex(lm_tabindex() + 1)
+  lm_output_name <- paste("output_tab", lm_tabindex(), sep = "_")
+  browser()
+  lm_inla[[lm_output_name]] <- try(inla(
+    formula = as.formula(lm_formula),
+    data = hot_to_r(input$data),
+    family = lm_formula_data$family(),
+    control.fixed = control_fixed_input(
+      prioris = lm_fixed_priors_data$priors(),
+      v.names = lm_formula_data$cov_var(),
+      intercept = lm_formula_data$intercept(),
+      covariates = input$lm_covariates
+    ),
+    control.compute = control_compute_input,
+    control.inla = control_inla_input,
+    control.family = lm_control_hyper$control_family_input()
+  ), silent = TRUE)
+  if (class(lm_inla[[lm_output_name]]) == "try-error") {
+    sendSweetAlert(
+      session = session,
+      title = translate("Error in inla", language = language_selected, lm_modal_words),
+      text = tags$span(
+        translate("INLA has crashed. INLA try to run and failed.", language = language_selected, lm_modal_words)
+      ),
+      html = TRUE,
+      type = "error",
+      closeOnClickOutside = TRUE
+    )
+  } else {
+
+    # Close the modal with lm options
+    removeModal()
+
+    # Create the new call to the model
+    lm_inla_call_print[[lm_output_name]] <- paste0(
+      "inla(data = ", "dat",
+      ", formula = ", '"', lm_formula_data$resp_var(),
+      " ~ ", ifelse(lm_formula_data$intercept(), ifelse(is.null(lm_formula_data$cov_var()), "+1", ""), "-1 + "), paste0(lm_formula_data$cov_var(), collapse = " + "), '"',
+      ifelse(input$lm_family_input == "gaussian", "", noquote(paste0(", family = ", '"', lm_control_family$family(), '"'))),
+      ifelse(1, "", paste0(
+        ", control.fixed = ",
+        list_call(inla.set.control.fixed.default())
+      )),
+      ifelse(identical(paste0(input$ok_btn_options_modal), character(0)), "",
+        paste0(", control.compute = ", list_call(control_compute_input))
+      ),
+      ifelse(checking_control_family(input), "", paste0(", control.family = ", list_call(lm_control_family$control_family_input()))),
+      ")"
+    )
+
+    # UI of the result tab
+    appendTab(
+      inputId = "mytabs", select = TRUE,
+      tabPanel(
+        title = paste0(translate("Model", language = language_selected, lm_modal_words), lm_tabindex()),
+        useShinydashboard(),
+        useShinyjs(),
+        fluidRow(
+          column(
+            width = 6,
+            box(
+              id = paste0("lm_box_call_", lm_tabindex()),
+              title = translate("Call", language = language_selected, lm_modal_words),
+              status = "primary",
+              solidHeader = TRUE,
+              width = 12,
+              textOutput(outputId = paste0("lm_call", lm_tabindex())),
+              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_call", lm_tabindex()))),
+              tags$div(
+                class = "collapse", id = paste0("showcode_call", lm_tabindex()),
+                tags$code(
+                  class = "language-r",
+                  paste0("dat <- ", '"', input$file$name, '"'),
+                  tags$br(),
+                  paste0("lm_inla_", lm_tabindex()), " <- ", lm_inla_call_print[[lm_output_name]],
+                  tags$br(),
+                  paste0("lm_inla_", lm_tabindex(), "$call")
+                )
+              ),
+              footer = downloadBttn(
+                outputId = paste0("download_script_", lm_tabindex()),
+                label = "Download Script",
+                style = "material-flat",
+                color = "primary",
+                size = "xs"
+              )
+            )
+          ),
+          column(
+            width = 6,
+            box(
+              id = paste0("lm_box_time_used", lm_tabindex()),
+              title = translate("Time Used", language = language_selected, lm_modal_words),
+              status = "primary",
+              solidHeader = TRUE,
+              width = 12,
+              dataTableOutput(outputId = paste0("lm_time_used_", lm_tabindex())),
+              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_time", lm_tabindex()))),
+              tags$div(
+                class = "collapse", id = paste0("showcode_time", lm_tabindex()),
+                tags$code(
+                  class = "language-r",
+                  paste0("dat <- ", '"', input$file$name, '"'),
+                  tags$br(),
+                  paste0("lm_inla_", lm_tabindex()), " <- ", lm_inla_call_print[[lm_output_name]],
+                  tags$br(),
+                  paste0("lm_inla_", lm_tabindex(), "$cpu.sued")
+                )
+              )
+            ),
+            dropdownButton(
+              icon = icon("download"),
+              up = TRUE,
+              status = "myclass",
+              inputId = paste0("download_rdata_", lm_tabindex()),
+              actionButton("test", "test"),
+              tags$head(tags$style(
+                "
+                             .btn-myclass {
+                                position: fixed;
+                                bottom: 20px;
+                                right: 30px;
+                                z-index: 99;
+                                font-size: 18px;
+                                border: none;
+                                outline: none;
+                                background-color: #12a19b;
+                                color: white;
+                                cursor: pointer;
+                                padding: 15px;
+                                border-radius: 4px;
+                             }
+                              .dropup .dropdown-menu, .navbar-fixed-bottom .dropdown .dropdown-menu {
+                      top: auto;
+                      bottom: 8vh;
+                      right: 80px;
+                      left: auto;
+                      position: fixed;
+                  }
+                             "
+              ))
+            )
+          )
+        ), # fluidrow ends here
+        fluidRow(
+          column(
+            width = 12,
+            box(
+              id = paste0("lm_box_fix_effects_", lm_tabindex()),
+              title = translate("Fixed Effects", language = language_selected, lm_modal_words),
+              status = "primary",
+              solidHeader = TRUE,
+              width = 12,
+              dataTableOutput(outputId = paste0("lm_fix_effects_", lm_tabindex())),
+              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", lm_tabindex()))),
+              tags$div(
+                class = "collapse", id = paste0("showcode_fix_effects_", lm_tabindex()),
+                tags$code(
+                  class = "language-r",
+                  paste0("dat <- ", '"', input$file$name, '"'),
+                  tags$br(),
+                  paste0("lm_inla_", lm_tabindex()), " <- ", lm_inla_call_print[[lm_output_name]],
+                  tags$br(),
+                  paste0("lm_inla_", lm_tabindex(), "$summary.fixed")
+                )
+              ),
+              footer = downloadBttn(
+                outputId = paste0("download_summary_", lm_tabindex()),
+                label = "Save Summary data",
+                style = "material-flat",
+                size = "xs"
+              )
+            )
+          ),
+          column(
+            width = 12,
+            useShinyjs(),
+            fluidRow(
+              conditionalPanel(
+                condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
+                box(
+                  id = paste0("lm_box_model_hyper_", lm_tabindex()),
+                  title = translate("Model Hyperparameters", language = language_selected, lm_modal_words),
+                  status = "primary",
+                  solidHeader = TRUE,
+                  width = 6,
+                  dataTableOutput(outputId = paste0("lm_model_hyper_", lm_tabindex())),
+                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", lm_tabindex()))),
+                  tags$div(
+                    class = "collapse", id = paste0("showcode_model_hyper_", lm_tabindex()),
+                    tags$code(
+                      class = "language-r",
+                      paste0("dat <- ", '"', input$file$name, '"'),
+                      tags$br(),
+                      paste0("lm_inla_", lm_tabindex()), " <- ", lm_inla_call_print[[lm_output_name]],
+                      tags$br(),
+                      paste0("lm_inla_", lm_tabindex(), "$summary.hyperpar")
+                    )
+                  )
+                )
+              ),
+              box(
+                id = paste0("lm_box_neffp_", lm_tabindex()),
+                title = translate("Expected Effective Number of Parameters in the Model", language = language_selected, lm_modal_words),
+                status = "primary",
+                solidHeader = TRUE,
+                width = 6,
+                dataTableOutput(outputId = paste0("lm_neffp_", lm_tabindex())),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", lm_tabindex()))),
+                tags$div(
+                  class = "collapse", id = paste0("showcode_neffp_", lm_tabindex()),
+                  tags$code(
+                    class = "language-r",
+                    paste0("dat <- ", '"', input$file$name, '"'),
+                    tags$br(),
+                    paste0("lm_inla_", lm_tabindex()), " <- ", lm_inla_call_print[[lm_output_name]],
+                    tags$br(),
+                    paste0("lm_inla_", lm_tabindex(), "$neffp")
+                  )
+                )
+              ),
+              conditionalPanel(
+                condition = "(input.ccompute_input_4 != '' &&  input.ccompute_input_4 == true)",
+                box(
+                  id = paste0("lm_box_dic_waic_", lm_tabindex()),
+                  title = translate("DIC and WAIC", language = language_selected, lm_modal_words),
+                  status = "primary",
+                  solidHeader = TRUE,
+                  width = 6,
+                  dataTableOutput(outputId = paste0("lm_dic_waic_", lm_tabindex())),
+                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", lm_tabindex()))),
+                  tags$div(
+                    class = "collapse", id = paste0("showcode_dic_waic_", lm_tabindex()),
+                    tags$code(
+                      class = "language-r",
+                      paste0("dat <- ", '"', input$file$name, '"'),
+                      tags$br(),
+                      paste0("lm_inla_", lm_tabindex()), " <- ", lm_inla_call_print[[lm_output_name]],
+                      tags$br(),
+                      paste0("lm_inla_", lm_tabindex(), "$dic$dic"),
+                      tags$br(),
+                      paste0("lm_inla", lm_tabindex(), "$dic$dic.sat"),
+                      tags$br(),
+                      paste0("lm_inla", lm_tabindex(), "$dic$p.eff")
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+
+    # "Server" of result tab
+
+    # Call
+    output[[paste0("lm_call", lm_tabindex())]] <- renderText({
+      lm_inla_call_print[[lm_output_name]]
+    })
+
+    # Download Script
+    output[[paste0("download_script_", lm_tabindex())]] <- downloadHandler(
+      filename = function() {
+        paste0("model_", lm_tabindex(), "_script", ".r")
+      },
+      content = function(file) {
+        write(paste(paste0("dat <- read.csv2(", input$file$datapath, ")"),
+          paste0("inla_model_", lm_tabindex(), "<-", lm_inla_call_print[[lm_output_name]]),
+          sep = "\n"
+        ), file)
+      }
+    )
+
+    # Time Used
+    output[[paste0("lm_time_used_", lm_tabindex())]] <- renderDataTable({
+      data_time_used <- lm_inla[[lm_output_name]][["cpu.used"]] %>%
+        t() %>%
+        as.data.frame(row.names = c("Time")) %>%
+        round(digits = 5)
+
+      DT::datatable(
+        data = data_time_used,
+        options = list(
+          dom = "t",
+          pageLength = 5
+        )
+      )
+    })
+
+    # Fixed Effects
+    output[[paste0("lm_fix_effects_", lm_tabindex())]] <- renderDataTable(
+      {
+        lm_inla[[lm_output_name]][["summary.fixed"]] %>%
+          round(digits = 5)
+      },
+      options = list(
+        paging = FALSE,
+        dom = "t"
+      )
+    )
+
+    # Download Summary
+    output[[paste0("download_summary_", lm_tabindex())]] <- downloadHandler(
+      filename = function() {
+        paste0("model_", lm_tabindex(), "summary.csv")
+      },
+      content = function(file) {
+        write.csv2(as.data.frame(lm_inla[[lm_output_name]]$summary.fixed), file = file)
+      }
+    )
+
+    # Model Hyper
+    output[[paste0("lm_model_hyper_", lm_tabindex())]] <- renderDataTable(
+      {
+        lm_inla[[lm_output_name]][["summary.hyperpar"]] %>%
+          round(digits = 5)
+      },
+      options = list(
+        dom = "t",
+        paging = FALSE
+      )
+    )
+
+    # Others (neffp)
+    output[[paste0("lm_neffp_", lm_tabindex())]] <- renderDataTable(
+      {
+        lm_neffp_dataframe <- lm_inla[[lm_output_name]][["neffp"]] %>%
+          round(digits = 5)
+        colnames(lm_neffp_dataframe) <- "Expected Value"
+        lm_neffp_dataframe
+      },
+      options = list(
+        dom = "t",
+        paging = FALSE
+      )
+    )
+
+    # Devicance Information Criterion (DIC)
+    output[[paste0("lm_dic_waic_", lm_tabindex())]] <- renderDataTable(
+      {
+        data.frame(
+          "DIC" = lm_inla[[lm_output_name]][["dic"]][["dic"]],
+          "DIC Saturated" = lm_inla[[lm_output_name]][["dic"]][["dic.sat"]],
+          "Effective number of parameters (DIC)" = lm_inla[[lm_output_name]][["dic"]][["p.eff"]],
+          "WAIC" = lm_inla[[lm_output_name]][["waic"]][["waic"]],
+          "Effective number of parameters (WAIC)" = lm_inla[[lm_output_name]][["waic"]][["p.eff"]],
+          row.names = "Expected Value"
+        ) %>%
+          round(digits = 5) %>%
+          t()
+      },
+      options = list(
+        dom = "t",
+        paging = FALSE
+      )
+    )
+  }
 })

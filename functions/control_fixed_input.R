@@ -72,7 +72,6 @@ control_fixed_input <- function(prioris, v.names, intercept, covariates){
       return(control_fixed_input_list)
     }else{
       control_fixed_input_list <- list() #Creating the object to return
-      
       if(!is.na(prioris[1,1])) #If existis, putting mean and precion of intercept on the list
         control_fixed_input_list[["mean.intercept"]] <- prioris[1,1]
       if(!is.na(prioris[1,2]))

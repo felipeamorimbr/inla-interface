@@ -60,7 +60,7 @@ observeEvent(input$options_action_btn, {
       tabsetPanel(
         tabPanel(
           "Control Compute",
-          fluidRow(selectInput(
+          fluidRow(br(),selectInput(
             inputId = "ccompute_input_1",
             label = translate("Computational strategy", language = language_selected, options_modal_words),
             choices = list(
@@ -146,7 +146,7 @@ observeEvent(input$options_action_btn, {
         ),
         tabPanel(
           "Control INLA",
-          fluidRow(selectInput(
+          fluidRow(br(),selectInput(
             inputId = "cinla_input_1",
             label = translate("Approximation strategy", language = language_selected, options_modal_words),
             choices = list(

@@ -22,8 +22,11 @@ source("functions/check_glm_ok.R")
 
 #Modules 
 source("Modules/fixed_effect_priors.R")
-source("Modules/sel_family.R")
-source("Modules/sel_formula.R")
+source("Modules/sel_hyper.R")
+# source("Modules/sel_formula.R")
+source("Modules/box_modules.R")
+source("Modules/new_chooser.R")
+
 
 #Data loaded
 load("data/avaliable_languages_RData.RData")
@@ -32,6 +35,10 @@ load("data/options_modal_words.RData")
 load("data/file_modal_words.RData")
 load("data/glm_modal_words.RData")
 load("data/lm_modal_words.RData")
+
+#Bottons and boxes
+model_buttons <- list()
+model_boxes <- list()
 
 accetable_formats <- c("csv", "txt")
 control_compute_input <- inla.set.control.compute.default()

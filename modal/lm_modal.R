@@ -81,7 +81,8 @@ output$lm_footer <- renderUI({
   ))
 })
 
-observeEvent(input$linear_action_btn, {
+observeEvent(c(input$linear_action_btn, input$lm_box_btn), {
+  browser()
   showModal(modalDialog(
     useShinyjs(),
     useSweetAlert(),

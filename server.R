@@ -12,5 +12,5 @@ server <- function(input, output, session) {
   # source("modal/lm_modal.R", local = TRUE, encoding = "UTF-8")
   source("modal/lm_new_modal.R", local = TRUE, encoding = "UTF-8")
   #General Linear Model Modal
-  source("modal/glm_modal.R", local = TRUE)
+  source("modal/new_glm_modal.R", local = TRUE)
 }

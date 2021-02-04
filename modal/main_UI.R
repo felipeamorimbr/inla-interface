@@ -5,51 +5,88 @@ observeEvent(input$file_load_btn, {
       fluidRow(
         useShinyjs(),
         useShinydashboard(),
-        smNavBar("menu", "INLA",
-                 full.width = TRUE, fixed = FALSE,
-                 smNavDropdown(
-                   label = translate("File", language = language_selected, main_UI_words),
-                   smAction("file_action_btn", translate("File", language = language_selected, main_UI_words))
-                 ),
-                 smNavDropdown(
-                   label = translate("Models", language = language_selected, main_UI_words),
-                   # smAction("linear_action_btn", translate("Linear Regression", language = language_selected, main_UI_words)),
-                   smAction("linear_action_btn_2", "Linear Regression"),
-                   smAction("glm_action_btn", translate("Hierarchical Linear Models", language = language_selected, main_UI_words))
-                 ),
-                 actionButton("options_action_btn", translate("Options", language = language_selected, main_UI_words))
-                 # ,smNavDropdown(
-                 #   label = "Download",
-                 #   smHeader("Data"),
-                 #   downloadButton(outputId = "download_data", label = translate("Download data", language = language_selected, main_UI_words)),
-                 #   uiOutput(outputId = "download_lm_model_data_ui"),
-                 #   uiOutput(outputId = "download_glm_model_data_ui"),
-                 #   textOutput(outputId = "no_download_avaliable")
-                 # )
+        smNavBar("menu", "INLAmod",
+          inverse = TRUE,
+          full.width = TRUE, fixed = FALSE,
+          smNavDropdown(
+            label = translate("File", language = language_selected, main_UI_words),
+            smAction("file_action_btn", translate("File", language = language_selected, main_UI_words))
+          ),
+          smNavDropdown(
+            label = translate("Models", language = language_selected, main_UI_words),
+            # smAction("linear_action_btn", translate("Linear Regression", language = language_selected, main_UI_words)),
+            # smAction("linear_action_btn_2", "Linear Regression"),
+            # smAction("glm_action_btn", translate("Hierarchical Linear Models", language = language_selected, main_UI_words))
+            model_buttons
+          ),
+          actionButton("options_action_btn",
+            label = "", icon = icon("cogs"),
+            style = "all:unset; color:#B8B8B8; cursor:pointer; outline:none; font-size: 18px; padding-top: 12px"
+          )
+          # ,smNavDropdown(
+          #   label = "Download",
+          #   smHeader("Data"),
+          #   downloadButton(outputId = "download_data", label = translate("Download data", language = language_selected, main_UI_words)),
+          #   uiOutput(outputId = "download_lm_model_data_ui"),
+          #   uiOutput(outputId = "download_glm_model_data_ui"),
+          #   textOutput(outputId = "no_download_avaliable")
+          # )
         )
       ),
+      tags$style(HTML("
+        .tabbable > .nav > li > a {background-color: #FFF  ;  color: #12a19b;}
+        .tabbable > .nav > li[class=active]    > a {background-color: #12a19b; color:white}
+        }")),
       tabsetPanel(
-        type = "pills", id = "mytabs",
+        type = "pills", id = "mytabs", selected = translate("Data", language = language_selected, main_UI_words),
+        tabPanel(
+          title = "",
+          icon = icon("home"),
+          fluidPage(
+            model_boxes
+          )
+        ),
         tabPanel(
           translate("Data", language = language_selected, main_UI_words),
+          br(),
+          tags$style(HTML("
+                
+                
+                .box.box-solid.box-primary>.box-header {
+                  color:#fff;
+                  background:#12a19b
+                                    }
+                
+                .box.box-solid.box-primary{
+                border-bottom-color:#12a19b;
+                border-left-color:#12a19b;
+                border-right-color:#12a19b;
+                border-top-color:#12a19b;
+                }")),
           fluidRow(
-            box(
-              id = "box_summary",
-              title = translate("Summary", language = language_selected, main_UI_words),
-              status = "primary",
-              solidHeader = TRUE,
+            column(
               width = 12,
-              dataTableOutput(outputId = "file_data_summary_ui")
+              box(
+                id = "box_summary",
+                title = translate("Summary", language = language_selected, main_UI_words),
+                solidHeader = TRUE,
+                status = "primary",
+                width = 12,
+                dataTableOutput(outputId = "file_data_summary_ui")
+              )
             )
           ),
           fluidRow(
-            box(
-              id = "box_data",
-              title = translate("Data", language = language_selected, main_UI_words),
-              status = "primary",
-              solidHeader = TRUE,
+            column(
               width = 12,
-              rHandsontableOutput(outputId = "data")
+              box(
+                id = "box_data",
+                title = translate("Data", language = language_selected, main_UI_words),
+                status = "primary",
+                solidHeader = TRUE,
+                width = 12,
+                rHandsontableOutput(outputId = "data")
+              )
             )
           )
         ),
@@ -58,7 +95,7 @@ observeEvent(input$file_load_btn, {
     )
   })
 })
-
+box_model_server("lm_box")
 
 
 # observeEvent(c(input$lm_ok, input$glm_ok),{
@@ -68,10 +105,10 @@ observeEvent(input$file_load_btn, {
 #     if(lm_tabindex() > 0){
 #       output$download_lm_model_data_ui <- renderUI({
 #         lapply(1:lm_tabindex(), function(n_lm_models){
-#           
+#
 #         })
 #       })
 #     }
 #   }
-#   
+#
 # })

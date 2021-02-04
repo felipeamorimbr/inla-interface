@@ -32,7 +32,15 @@ file_modal <- modalDialog(
         width = 8,
         DT::dataTableOutput(outputId = "file_datatable")
       )
-    )
+    ),
+    tags$head(
+      tags$style(HTML(
+        "
+          .modal-header{
+          border-bottom-color: #12a19b;
+          }
+          "
+      )))
   )
 )
 

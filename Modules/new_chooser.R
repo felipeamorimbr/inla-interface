@@ -1,30 +1,24 @@
 # New Chooser
-new_chooser_UI <- function(id, respLabel, selected_left, selected_right = NULL) {
+new_chooser_UI <- function(id, respLabel, familyLabel, selected_left, familyChoices, selected_right = NULL) {
   ns <- NS(id)
   
   column(
-    width = 4, # Tamanho total
-    column(
-      width = 12,
-      column(
-        width = 6, offset = 3,
-        selectInput(
-          inputId = ns("resp_var"),
-          label = respLabel,
-          choices = unique(c(selected_left, selected_right)), 
-          selected = selected_left[1],
-          multiple = FALSE
-        ), 
-        checkboxInput(
-          inputId = ns("intercept"),
-          label = "Intercept",
-          value = TRUE
-        )
-      )
-    ),
+    width = 7, # Tamanho total
     column(
       width = 5, # Tamanho da coluna da esquerda
-      style = 'height: 180px',
+        column(
+          width = 12,
+          selectInput(
+            inputId = ns("sel_family"),
+            label = familyLabel,
+            choices = familyChoices,
+            selected = "gaussian",
+            multiple = FALSE,
+            selectize = FALSE
+          ),
+          tags$br(),
+          tags$br()
+        ),
       column(
         width = 12,
         selectInput(
@@ -56,7 +50,7 @@ new_chooser_UI <- function(id, respLabel, selected_left, selected_right = NULL) 
     ),
     column(
       width = 2, # Tamanho da coluna do meio
-      style = 'height: 200px; padding-top:50px',
+      style = 'height: 200px; padding-top:150px',
       actionButton(
         inputId = ns("right_arrow"), 
         label = NULL, 
@@ -73,7 +67,20 @@ new_chooser_UI <- function(id, respLabel, selected_left, selected_right = NULL) 
     ),
     column(
       width = 5, # Tamanho da coluna da direita
-      style = 'height: 180px',
+      column(width = 12,
+             selectInput(
+               inputId = ns("resp_var"),
+               label = respLabel,
+               choices = unique(c(selected_left, selected_right)), 
+               selected = selected_left[1],
+               multiple = FALSE
+             ), 
+             checkboxInput(
+               inputId = ns("intercept"),
+               label = "Intercept",
+               value = TRUE
+             )
+             ),
       column(
         width = 12,
         selectInput(
@@ -117,7 +124,6 @@ new_chooser <- function(id, selected_left, selected_right, leftLabel, rightLabel
       
       observeEvent(input$resp_var, {
         todas_vars <- c(selected_left, selected_right)
-        
         variables$right <- variables$right[variables$right != input$resp_var]
         variables$left <- todas_vars[!(todas_vars %in% c(input$resp_var, variables$right))]
         
@@ -207,7 +213,73 @@ new_chooser <- function(id, selected_left, selected_right, leftLabel, rightLabel
                           choices = variables$right,
                           selected = NULL)
       })
-      # return(list(resp_sel = resp_selected, cov_var = cov_var_selected, intercept = intercept_selected))
+      return(list(
+        resp_var = reactive({input$resp_var}),
+        intercept = reactive({input$intercept}),
+        cov_var = reactive(variables$right),
+        family = reactive(input$sel_family),
+        not_selected = reactive(variables$left)
+      ))
     }
   )
 }
+
+
+#Test -----
+# ui <- fluidPage(
+#   new_chooser_UI(id = "Test",
+#                  respLabel = "Respostas", 
+#                  familyLabel = "Familia", 
+#                  selected_left = c("X1", "X2", "X3"), 
+#                  familyChoices = c("t", "Gaussian"), selected_right = NULL),
+#   actionButton("browser", "ok")
+# )
+# 
+# server <- function(input, output, session){
+#   testando <- new_chooser(id = "Test", 
+#                           selected_left = c("X1", "X2", "X3"), 
+#                           selected_right = NULL, 
+#                           leftLabel = "Covariaveis",
+#                           rightLabel = "Covariaveis selecionadas")
+#   observeEvent(input$browser, {
+#     browser()
+#   })
+# }
+# 
+# shinyApp(ui, server)
+
+#Test with a Modal ----
+ui <- fluidPage(
+  actionButton("Open_modal", "Open")
+)
+
+server <- function(input, output, session){
+  observeEvent(input$Open_modal,{
+      showModal(modalDialog(
+      footer = actionButton("close", "Close"),
+        new_chooser_UI(id = "Test",
+                       respLabel = "Respostas",
+                       familyLabel = "Familia",
+                       selected_left = c("X1", "X2", "X3"),
+                       familyChoices = c("t", "Gaussian"), selected_right = NULL),
+        actionButton("browser", "ok")
+      ))
+  })
+    testando <- new_chooser(id = "Test",
+                            selected_left = c("X1", "X2", "X3"),
+                            selected_right = NULL,
+                            leftLabel = "Covariaveis",
+                            rightLabel = "Covariaveis selecionadas")
+    observeEvent(input$browser, {
+    })
+    observeEvent(input$close, {
+      removeModal()
+      testando <- new_chooser(id = "Test",
+                  selected_left = c("X1", "X2", "X3"),
+                  selected_right = NULL,
+                  leftLabel = "Covariaveis",
+                  rightLabel = "Covariaveis selecionadas")
+    })
+}
+
+shinyApp(ui, server)

@@ -1,22 +1,19 @@
 source("functions/inla_models_functions.R")
 #Module for select family, link function (or not) and priors
-sel_family_ui <- function(id, familyLabel, familyChoices, linkLabel = NULL){
+sel_hyper_ui <- function(id, linkLabel = NULL){
   ns <- NS(id)
   useShinyjs()
   column(
-    width = 7,
+    width = 8,
     style = "padding-top: 25px",
     column(
-      width = 5,
-      offset = 2,
-      selectInput(
-        inputId = ns("sel_family"),
-        label = familyLabel,
-        choices = familyChoices,
-        selected = "gaussian",
-        multiple = FALSE,
-        selectize = FALSE
-      ),
+      width = 7,
+      uiOutput(outputId = ns("hyperprior_ui"))
+    )
+    ,
+    column(
+      width = 4,
+      offset = 1,
       selectInput(
         inputId = ns("sel_link"),
         label = linkLabel, 
@@ -24,26 +21,26 @@ sel_family_ui <- function(id, familyLabel, familyChoices, linkLabel = NULL){
         multiple = FALSE,
         selectize = FALSE
       )
-    ),
-    
-    column(
-      width = 5,
-      uiOutput(outputId = ns("hyperprior_ui"))
     )
   )
 }
 
-sel_family <- function(id, Link){
+sel_hyper <- function(id, Link, sel_family){
   moduleServer(
     id,
     function(input, output, session){
       
-      observeEvent(input$sel_family, { #Update link function available when family changes
-        updateSelectInput(session, 
-                          inputId = "sel_link",
-                          choices = link_avaliable(input$sel_family))
+      family_react <- reactive({
+        validate(need(sel_family, FALSE))
+        sel_family
       })
       
+      observeEvent(family_react(), { #Update link function available when family changes
+        updateSelectInput(session, 
+                          inputId = "sel_link",
+                          choices = link_avaliable(sel_family))
+      })
+      useShinyjs()
       observe({ #Hide or show selectInput for link function
         validate(need(input$sel_lnk, FALSE))
         shinyjs::toggle("sel_link", condition = Link)
@@ -51,8 +48,10 @@ sel_family <- function(id, Link){
       
       n_hyperprior <- reactiveValues(n_hyperprior = 0)
       
-      observeEvent(input$sel_family, {
-        n_hyperprior$n_hyperprior <- n_hyper(input$sel_family) 
+      
+      
+      observeEvent(family_react(), {
+        n_hyperprior$n_hyperprior <- n_hyper(family_react()) 
         
         
         output$hyperprior_ui <- renderUI({
@@ -63,8 +62,9 @@ sel_family <- function(id, Link){
           for(i in 1:n_hyperprior$n_hyperprior){
             aux_hyper_dist <- paste0("hyper_dist_", i)
             aux_hyper_ui <- paste0("hyper_ui_", i)
-            list_ui[[i]] <- column(6, selectInput(inputId = ns(aux_hyper_dist), choices = priors_distributions, selected = hyper_default(input$sel_family, i),
-                                                  label = paste0("Selct Priros for ", name_hyper(input$sel_family, i))),
+            list_ui[[i]] <- column(6, selectInput(inputId = ns(aux_hyper_dist), choices = priors_distributions, selected = hyper_default(family_react(), i),
+                                                  label = paste0("Selct Priros for ", name_hyper(family_react(), i)),
+                                                  width = "100%"),
                                    uiOutput(outputId = ns(aux_hyper_ui)))
           }
           list_ui
@@ -82,7 +82,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_1_param_", j)
             list_ui_hyper_1[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 1)[j])
+                                                 value = hyper_default_param(family_react(), 1)[j])
           }
           list_ui_hyper_1
         })
@@ -99,7 +99,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_1_param_", j)
             list_ui_hyper_2[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 2)[j])
+                                                 value = hyper_default_param(family_react(), 2)[j])
           }
           list_ui_hyper_2
         })
@@ -116,7 +116,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_3_param_", j)
             list_ui_hyper_3[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 3)[j])
+                                                 value = hyper_default_param(family_react(), 3)[j])
           }
           list_ui_hyper_3
         })
@@ -133,7 +133,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_4_param_", j)
             list_ui_hyper_4[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 4)[j])
+                                                 value = hyper_default_param(family_react(), 4)[j])
           }
           list_ui_hyper_4
         })
@@ -150,7 +150,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_5_param_", j)
             list_ui_hyper_5[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 5)[j])
+                                                 value = hyper_default_param(family_react(), 5)[j])
           }
           list_ui_hyper_5
         })
@@ -167,7 +167,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_6_param_", j)
             list_ui_hyper_6[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 6)[j])
+                                                 value = hyper_default_param(family_react(), 6)[j])
           }
           list_ui_hyper_6
         })
@@ -184,7 +184,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_7_param_", j)
             list_ui_hyper_7[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 7)[j])
+                                                 value = hyper_default_param(family_react(), 7)[j])
           }
           list_ui_hyper_7
         })
@@ -201,7 +201,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_8_param_", j)
             list_ui_hyper_8[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 8)[j])
+                                                 value = hyper_default_param(family_react(), 8)[j])
           }
           list_ui_hyper_8
         })
@@ -218,7 +218,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_9_param_", j)
             list_ui_hyper_9[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                  label = paste0("Parameter", j),
-                                                 value = hyper_default_param(input$sel_family, 9)[j])
+                                                 value = hyper_default_param(family_react(), 9)[j])
           }
           list_ui_hyper_9
         })
@@ -234,7 +234,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_10_param_", j)
             list_ui_hyper_10[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                   label = paste0("Parameter", j),
-                                                  value = hyper_default_param(input$sel_family, 10)[j])
+                                                  value = hyper_default_param(family_react(), 10)[j])
           }
           list_ui_hyper_10
         })
@@ -251,7 +251,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_11_param_", j)
             list_ui_hyper_11[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                   label = paste0("Parameter", j),
-                                                  value = hyper_default_param(input$sel_family, 11)[j])
+                                                  value = hyper_default_param(family_react(), 11)[j])
           }
           list_ui_hyper_11
         })
@@ -268,7 +268,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_12_param_", j)
             list_ui_hyper_12[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                   label = paste0("Parameter", j),
-                                                  value = hyper_default_param(input$sel_family, 12)[j])
+                                                  value = hyper_default_param(family_react(), 12)[j])
           }
           list_ui_hyper_12
         })
@@ -285,7 +285,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_13_param_", j)
             list_ui_hyper_13[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                   label = paste0("Parameter", j),
-                                                  value = hyper_default_param(input$sel_family, 13)[j])
+                                                  value = hyper_default_param(family_react(), 13)[j])
           }
           list_ui_hyper_13
         })
@@ -302,7 +302,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_14_param_", j)
             list_ui_hyper_14[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                   label = paste0("Parameter", j),
-                                                  value = hyper_default_param(input$sel_family, 14)[j])
+                                                  value = hyper_default_param(family_react(), 14)[j])
           }
           list_ui_hyper_14
         })
@@ -319,7 +319,7 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_15_param_", j)
             list_ui_hyper_15[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                   label = paste0("Parameter", j),
-                                                  value = hyper_default_param(input$sel_family, 15)[j])
+                                                  value = hyper_default_param(family_react(), 15)[j])
           }
           list_ui_hyper_15
         })
@@ -336,27 +336,38 @@ sel_family <- function(id, Link){
             aux_hyper_id <- paste0("hyper_dist_16_param_", j)
             list_ui_hyper_16[[j]] <- numericInput(inputId = ns(aux_hyper_id),
                                                   label = paste0("Parameter", j),
-                                                  value = hyper_default_param(input$sel_family, 16)[j])
+                                                  value = hyper_default_param(family_react(), 16)[j])
           }
           list_ui_hyper_16
         })
       })
-      return(reactive(control_family_input(input)))
+      return(list(control_family_input = reactive(control_family_input(input))))
     }
   )
 }
 
-#Teast ----
-# ui <- fluidPage(
-#   sel_family_ui(id = "teste",familyLabel = "Escolha a Família", familyChoices = glm_family, linkLabel = "Seleciona a função de ligação"),
-#   verbatimTextOutput("imprimir")
-# )
-# 
-# server <- function(input, output, session){
-#   output$imprimir <- renderPrint({
-#     sel_family("teste", TRUE)()
-#   })
-# }
-# 
-# shinyApp(ui, server)
-# 
+# Test ----
+ui <- fluidPage(
+  selectInput(inputId = "family_sel", label = "Family", choices = c("gaussian", "t"), selected = "gaussian"),
+  uiOutput(outputId = "sel_hyper_family"),
+  verbatimTextOutput("imprimir"),
+  actionButton("ok_browser", label = "Ok")
+)
+
+server <- function(input, output, session){
+  output$sel_hyper_family <- renderUI({
+    sel_hyper_ui(id = "teste", linkLabel = "Seleciona a função de ligação")
+  })
+  family_reactive <- reactive({
+    input$family_sel
+  })
+  output$imprimir <- renderPrint({
+    sel_hyper("teste", TRUE, sel_family = family_reactive())
+  })
+  observeEvent(input$ok_browser,{
+    browser()
+  })
+}
+
+shinyApp(ui, server)
+
