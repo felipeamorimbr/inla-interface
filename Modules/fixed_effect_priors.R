@@ -18,12 +18,12 @@ fixed_effects_priors_ui <- function(id){
     )
 }
 
-fixed_effects_priors <- function(id, resp_variables, intercept){
+fixed_effects_priors <- function(id, cov_var, intercept){
   moduleServer(
     id,
     function(input, output, session){
       number_variables <- reactive({
-        length(resp_variables) + intercept
+        length(cov_var) + intercept
       })
       
       observeEvent(number_variables(), {
@@ -34,8 +34,8 @@ fixed_effects_priors <- function(id, resp_variables, intercept){
               column(
                 width = 6,
                 numericInput(
-                  inputId = ns(paste0("mean_", ifelse(number == 1 && intercept == 1, "intercept", resp_variables[number-intercept]))),
-                  label = ifelse(number == 1 && intercept == 1, "intercept", resp_variables[number-intercept]),
+                  inputId = ns(paste0("mean_", ifelse(number == 1 && intercept == 1, "intercept", cov_var[number-intercept]))),
+                  label = ifelse(number == 1 && intercept == 1, "intercept", cov_var[number-intercept]),
                   value = 0,
                   width = '100%'
                 )
@@ -52,8 +52,8 @@ fixed_effects_priors <- function(id, resp_variables, intercept){
               column(
                 width = 6,
                 numericInput(
-                  inputId = ns(paste0("prec_", ifelse(number == 1 && intercept == 1, "intercept", resp_variables[number-intercept]))),
-                  label = ifelse(number == 1 && intercept == 1, "intercept", resp_variables[number-intercept]),
+                  inputId = ns(paste0("prec_", ifelse(number == 1 && intercept == 1, "intercept", cov_var[number-intercept]))),
+                  label = ifelse(number == 1 && intercept == 1, "intercept", cov_var[number-intercept]),
                   value = ifelse(number == 1 && intercept == 1, 0, 0.001),
                   width = '100%'
                 )
@@ -71,8 +71,8 @@ fixed_effects_priors <- function(id, resp_variables, intercept){
       priors <- reactive({
         aux <- matrix(NA_real_, nrow = number_variables(), ncol = 2)
         for(i in 1:number_variables()){
-          aux[i,1] <- input[[ paste0("mean_", ifelse(i == 1 && intercept == 1, "intercept", resp_variables[i-intercept]))]]
-          aux[i,2] <- input[[ paste0("prec_", ifelse(i == 1 && intercept == 1, "intercept", resp_variables[i-intercept]))]]
+          aux[i,1] <- input[[ paste0("mean_", ifelse(i == 1 && intercept == 1, "intercept", cov_var[i-intercept]))]]
+          aux[i,2] <- input[[ paste0("prec_", ifelse(i == 1 && intercept == 1, "intercept", cov_var[i-intercept]))]]
         }
         return(aux)
       })

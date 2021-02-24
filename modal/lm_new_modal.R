@@ -1,18 +1,34 @@
 # Modal for Linear Model
-lm_data <- eventReactive(data_input(), {
-  list(
-    variables_not_selected = data_input()$covariates,
-    variables_selected = NULL,
-    resp_var = data_input()$covariates[1],
-    family_selected = lm_family[1],
-    intercept = TRUE,
-    fixed_effects = control_fixed_input(matrix(c(0,0), nrow = 1, ncol = 2), v.names = "", intercept = TRUE, covariates = NULL),
-    control_family = inla.set.control.family.default()
+observeEvent(data_input(), {
+  lm_data <<- list()
+
+  lm_data$formula <<- list(
+    resp_var = reactive({data_input()$covariates[1]}),
+    cov_var = reactive({NULL}),
+    not_selected = reactive({data_input()$covariates}),
+    intercept = reactive({TRUE}),
+    family = reactive({"Gaussian"})
   )
+  lm_data$fixed_priors <<- inla.set.control.fixed.default()
 })
 
 observeEvent(c(input$linear_action_btn_2, input$lm_box), {
   validate(need(sum(input$linear_action_btn_2, input$lm_box) > 0, ""))
+  
+  lm_data$formula <<- new_chooser(
+    id = "lm_formula",
+    selected_right = lm_data$formula$cov_var(),
+    selected_left = lm_data$formula$not_selected(),
+    resp_var = lm_data$formula$resp_var(),
+    rightLabel = "Covariates Selected",
+    leftLabel = "Covariates"
+  )
+
+  lm_data$fixed_priors <<- fixed_effects_priors(
+    id = "lm_fixed",
+    cov_var = lm_data$formula$cov_var(),
+    intercept = lm_data$formula$intercept()
+  )
   showModal(modalDialog(fluidPage(
     includeCSS(path = "modal/style_lm.css"),
     shinyjs::useShinyjs(),
@@ -21,12 +37,15 @@ observeEvent(c(input$linear_action_btn_2, input$lm_box), {
       tabPanel(
         title = "Select Variables",
         tags$br(),
-        new_chooser_UI(id = "lm_formula",
-                       respLabel = "Response", 
-                       selected_left = lm_data()$variables_not_selected,
-                       familyLabel = "Family",
-                       selected_right = lm_data()$variables_selected,
-                       familyChoices = lm_family)
+        new_chooser_UI(
+          id = "lm_formula",
+          respLabel = "Response",
+          resp_var = lm_data$formula$resp_var(),
+          selected_right = lm_data$formula$cov_var(),
+          selected_left = lm_data$formula$not_selected(),
+          familyLabel = "Family",
+          familyChoices = lm_family
+        )
       ),
       tabPanel(
         title = "Fixed Effects",
@@ -54,7 +73,7 @@ observeEvent(c(input$linear_action_btn_2, input$lm_box), {
   title = "Linear Model",
   size = "l",
   fade = FALSE,
-  footer = tagList(actionButton(inputId = "lm_ok", label = "Ok"), actionButton(inputId = "lm_cancel", label = "Cancel"))
+  footer = tagList(actionButton(inputId = "lm_ok", label = "Ok"), modalButton(label = "Cancel"))
   ))
 })
 
@@ -65,46 +84,34 @@ model_boxes$lm <- actionButton(
   style = "all:unset; color:black; cursor:pointer; outline:none;"
 )
 
-
-lm_formula_data <- new_chooser(
-  id = "lm_formula",  
-  selected_left = lm_data()$variables_not_selected, 
-  selected_right = NULL, 
-  rightLabel = "Covariates", 
-  leftLabel = "Covariates Selected"
-)
-
-observeEvent(c(lm_formula_data$resp_var(), lm_formula_data$cov_var(), lm_formula_data$intercept()), {
-  # lm_data()$variables_selected <- ifelse(is.null(lm_formula_data$cov_var()), NULL, lm_formula_data$cov_var())
-  lm_fixed_priors_data <- fixed_effects_priors(
-  id = "lm_fixed",
-  resp_variables = lm_data()$variables_selected,
-  intercept = lm_data()$intercept
-)
-})
-
-observeEvent(lm_formula_data$family(), {
-  useShinyjs()
-  validate(need(lm_formula_data, FALSE))
-  lm_control_family <- sel_hyper(id = "lm_family", Link = FALSE, sel_family = lm_data()$family)
-})
-
-observeEvent(input$lm_cancel, {
-new_chooser(
-  id = "lm_formula",
-  selected_left = NULL,
-  selected_right = NULL,
-  rightLabel = "Covariates",
-  leftLabel = "Covariates Selected"
-)
-fixed_effects_priors(
-  id = "lm_fixed",
-  resp_variables = NULL,
-  intercept = NULL
-)
-sel_hyper(id = "lm_family", Link = FALSE, sel_family = lm_formula_data$family())
-  removeModal()
-})
+# lm_fixed_priors_data <- fixed_effects_priors(
+#   id = "lm_fixed",
+#   cov_var = lm_formula_data$cov_var(),
+#   intercept = lm_formula_data$intercept()
+# )
+#
+# observeEvent(lm_formula_data$family(), {
+#   useShinyjs()
+#   validate(need(lm_formula_data, FALSE))
+#   lm_control_family <- sel_hyper(id = "lm_family", Link = FALSE, sel_family = lm_data()$family)
+# })
+#
+# observeEvent(input$lm_cancel, {
+# new_chooser(
+#   id = "lm_formula",
+#   selected_left = NULL,
+#   selected_right = NULL,
+#   rightLabel = "Covariates",
+#   leftLabel = "Covariates Selected"
+# )
+# fixed_effects_priors(
+#   id = "lm_fixed",
+#   resp_variables = NULL,
+#   intercept = NULL
+# )
+# sel_hyper(id = "lm_family", Link = FALSE, sel_family = lm_formula_data$family())
+#   removeModal()
+# })
 
 lm_tabindex <- reactiveVal(0)
 observeEvent(input$lm_ok, {
