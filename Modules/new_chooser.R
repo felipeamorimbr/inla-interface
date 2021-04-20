@@ -71,7 +71,7 @@ new_chooser_UI <- function(id, respLabel, familyLabel, resp_var, selected_left, 
              selectInput(
                inputId = ns("resp_var"),
                label = respLabel,
-               choices = unique(c(resp_var, selected_left, selected_right), 
+               choices = unique(c(resp_var, selected_left, selected_right)), 
                selected = resp_var,
                multiple = FALSE
              ), 
@@ -110,7 +110,6 @@ new_chooser_UI <- function(id, respLabel, familyLabel, resp_var, selected_left, 
         )
       )
     )
-  )
   )
 }
 
@@ -231,47 +230,47 @@ new_chooser <- function(id, resp_var, selected_left, selected_right, leftLabel, 
 }
 
 #Test with a Modal ----
-ui <- fluidPage(
-  actionButton("Open_modal", "Open")
-)
-
-server <- function(input, output, session) {
-  vals <- list(variables = list(resp_var = "X1", left = c("X1", "X2", "X3"), right = NULL))
-  
-  observeEvent(input$Open_modal, {
-    
-    vals <<- new_chooser(
-      id = "Test",
-      resp_var = vals$variables$resp_var,
-      selected_left = vals$variables$left,
-      selected_right = vals$variables$right,
-      leftLabel = "Covariaveis",
-      rightLabel = "Covariaveis selecionadas"
-    )
-    
-    showModal(
-      modalDialog(
-        footer = actionButton("close", "Close"),
-        new_chooser_UI(
-          id = "Test",
-          respLabel = "Respostas",
-          familyLabel = "Familia",
-          resp_var = vals$variables$resp_var,
-          selected_left = vals$variables$left,
-          selected_right = vals$variables$right,
-          familyChoices = c("t", "Gaussian")
-        ),
-        actionButton("browser", "ok")
-      ))
-  })
-  
-  observeEvent(input$close, {
-    removeModal()
-  })
-  
-  observeEvent(input$browser, {
-    browser()
-  })
-}
-
-shinyApp(ui, server)
+# ui <- fluidPage(
+#   actionButton("Open_modal", "Open")
+# )
+# 
+# server <- function(input, output, session) {
+#   vals <- list(variables = list(resp_var = "X1", left = c("X1", "X2", "X3"), right = NULL))
+# 
+#   observeEvent(input$Open_modal, {
+# 
+#     vals <<- new_chooser(
+#       id = "Test",
+#       resp_var = vals$variables$resp_var,
+#       selected_left = vals$variables$left,
+#       selected_right = vals$variables$right,
+#       leftLabel = "Covariaveis",
+#       rightLabel = "Covariaveis selecionadas"
+#     )
+# 
+#     showModal(
+#       modalDialog(
+#         footer = actionButton("close", "Close"),
+#         new_chooser_UI(
+#           id = "Test",
+#           respLabel = "Respostas",
+#           familyLabel = "Familia",
+#           resp_var = vals$variables$resp_var,
+#           selected_left = vals$variables$left,
+#           selected_right = vals$variables$right,
+#           familyChoices = c("t", "Gaussian")
+#         ),
+#         actionButton("browser", "ok")
+#       ))
+#   })
+# 
+#   observeEvent(input$close, {
+#     removeModal()
+#   })
+# 
+#   observeEvent(input$browser, {
+#     browser()
+#   })
+# }
+# 
+# shinyApp(ui, server)

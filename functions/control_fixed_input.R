@@ -1,6 +1,6 @@
 #Function that recive the matrix of prioris and the variables names and return the input of control.fixed from INLA
-control_fixed_input <- function(prioris, v.names, intercept, covariates){
-  if((intercept == TRUE && !is.null(covariates))){
+control_fixed_input <- function(prioris, v.names, intercept){
+  if((intercept == TRUE && !is.null(prioris))){
     control_fixed_input_list <- list() #Creating the object to return
     if(!is.na(prioris[1,1])) #If existis, putting mean and precion of intercept on the list
       control_fixed_input_list[["mean.intercept"]] <- prioris[1,1]
@@ -17,7 +17,7 @@ control_fixed_input <- function(prioris, v.names, intercept, covariates){
     for(i in 2:n){ #Puting the terms inside the list
       if(!is.na(prioris[i,1])){
         mean.prioris[[j]] <- prioris[i,1]
-        names(mean.prioris)[j] <- formula.terms[i]
+        names(mean.prioris)[j] <- formula.terms[j]
         j <- j+1
       }
     }
@@ -26,19 +26,17 @@ control_fixed_input <- function(prioris, v.names, intercept, covariates){
     for(l in 2:n){ #Puting the terms inside the list
       if(!is.na(prioris[l,2])){
         prec.prioris[[k]] <- prioris[l,2]
-        names(prec.prioris)[k] <- formula.terms[l]
+        names(prec.prioris)[k] <- formula.terms[k]
         k <- k+1
       }
     }
-    
     if(length(mean.prioris) != 0)
       control_fixed_input_list[["mean"]] <- mean.prioris
     if(length(prec.prioris) != 0)
       control_fixed_input_list[["prec"]] <- prec.prioris
-    
     return(control_fixed_input_list)
   }else{
-    if((intercept == FALSE && !is.null(covariates))){
+    if((intercept == FALSE && !is.null(prioris))){
       control_fixed_input_list <- list() #Creating the object to return
       
       n <- nrow(prioris) #Number of variables + 1 (intercept)
@@ -50,7 +48,7 @@ control_fixed_input <- function(prioris, v.names, intercept, covariates){
       for(i in 1:n){ #Puting the terms inside the list
         if(!is.na(prioris[i,1])){
           mean.prioris[[j]] <- prioris[i,1]
-          names(mean.prioris)[j] <- formula.terms[i]
+          names(mean.prioris)[j] <- formula.terms[j]
           j <- j+1
         }
       }
@@ -59,7 +57,7 @@ control_fixed_input <- function(prioris, v.names, intercept, covariates){
       for(l in 1:n){ #Puting the terms inside the list
         if(!is.na(prioris[l,2])){
           prec.prioris[[k]] <- prioris[l,2]
-          names(prec.prioris)[k] <- formula.terms[l]
+          names(prec.prioris)[k] <- formula.terms[k]
           k <- k+1
         }
       }

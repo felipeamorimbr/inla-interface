@@ -10,7 +10,9 @@ server <- function(input, output, session) {
   
   #Linear model Modal
   # source("modal/lm_modal.R", local = TRUE, encoding = "UTF-8")
-  source("modal/lm_new_modal.R", local = TRUE, encoding = "UTF-8")
+  source("modal/lm_new_modal.R", local = TRUE)
   #General Linear Model Modal
   source("modal/new_glm_modal.R", local = TRUE)
+  #Survivor Modal
+  source("modal/surv_new_modal.R", local = TRUE)
 }

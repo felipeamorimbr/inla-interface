@@ -10,6 +10,10 @@ observeEvent(data_input(), {
     family = reactive({"Gaussian"})
   )
   lm_data$fixed_priors <<- inla.set.control.fixed.default()
+  lm_data$hyper <<- inla.set.control.family.default()
+  
+  lm_data$fixed_priors_tab <<- FALSE
+  lm_data$hyper_tab <<- FALSE
 })
 
 observeEvent(c(input$linear_action_btn_2, input$lm_box), {
@@ -55,8 +59,7 @@ observeEvent(c(input$linear_action_btn_2, input$lm_box), {
       tabPanel(
         title = "Hyperpriors",
         sel_hyper_ui(
-          id = "lm_family",
-          linkLabel = NULL
+          id = "lm_hyper"
         )
       )
     ),
@@ -84,57 +87,53 @@ model_boxes$lm <- actionButton(
   style = "all:unset; color:black; cursor:pointer; outline:none;"
 )
 
-# lm_fixed_priors_data <- fixed_effects_priors(
-#   id = "lm_fixed",
-#   cov_var = lm_formula_data$cov_var(),
-#   intercept = lm_formula_data$intercept()
-# )
-#
-# observeEvent(lm_formula_data$family(), {
-#   useShinyjs()
-#   validate(need(lm_formula_data, FALSE))
-#   lm_control_family <- sel_hyper(id = "lm_family", Link = FALSE, sel_family = lm_data()$family)
-# })
-#
-# observeEvent(input$lm_cancel, {
-# new_chooser(
-#   id = "lm_formula",
-#   selected_left = NULL,
-#   selected_right = NULL,
-#   rightLabel = "Covariates",
-#   leftLabel = "Covariates Selected"
-# )
-# fixed_effects_priors(
-#   id = "lm_fixed",
-#   resp_variables = NULL,
-#   intercept = NULL
-# )
-# sel_hyper(id = "lm_family", Link = FALSE, sel_family = lm_formula_data$family())
-#   removeModal()
-# })
+observeEvent(input$lm_tabs, {
+  lm_data$fixed_priors <<- fixed_effects_priors(
+    id = "lm_fixed",
+    cov_var = lm_data$formula$cov_var(),
+    intercept = lm_data$formula$intercept()
+  )
+  
+  lm_data$hyper <<- sel_hyper(id = "lm_hyper",
+                              Link = FALSE,
+                              sel_family = lm_data$formula$family(),
+                              linkLabel = NULL)
+})
+
+observeEvent(input$lm_tabs,{
+  lm_data$fixed_priors_tab <<- ifelse(input$lm_tabs == "Fixed Effects", TRUE, lm_data$fixed_priors_tab )
+  lm_data$hyper_tab <<- ifelse(input$lm_tabs == "Hyperpriors", TRUE, lm_data$hyper_tab)
+})
 
 lm_tabindex <- reactiveVal(0)
 observeEvent(input$lm_ok, {
-  lm_formula <- paste0(lm_formula_data$resp_var(), " ~ ", paste0(lm_formula_data$cov_var(), collapse = " + "), ifelse(lm_formula_data$intercept(), " + 1", " - 1"))
-  browser()
+  lm_formula <- paste0(lm_data$formula$resp_var(), " ~ ", paste0(lm_data$formula$cov_var(), collapse = " + "), ifelse(lm_data$formula$intercept(), " + 1", " - 1"))
   lm_inla <- list()
   lm_inla_call_print <- list()
-  lm_tabindex(lm_tabindex() + 1)
   lm_output_name <- paste("output_tab", lm_tabindex(), sep = "_")
-  browser()
+  if(lm_data$fixed_priors_tab == FALSE){
+    lm_control_fixed <- inla.set.control.fixed.default()
+  }else{
+    lm_control_fixed <- control_fixed_input(
+      prioris = lm_data$fixed_priors(),
+      v.names = lm_data$formula$cov_var(),
+      intercept = lm_data$formula$intercept()
+    )
+  }
+  if(lm_data$hyper_tab == FALSE){
+    lm_control_family <- inla.set.control.family.default()
+  }else{
+    lm_control_family <- lm_data$hyper$control_family_input()
+  }
+  
   lm_inla[[lm_output_name]] <- try(inla(
     formula = as.formula(lm_formula),
     data = hot_to_r(input$data),
-    family = lm_formula_data$family(),
-    control.fixed = control_fixed_input(
-      prioris = lm_fixed_priors_data$priors(),
-      v.names = lm_formula_data$cov_var(),
-      intercept = lm_formula_data$intercept(),
-      covariates = input$lm_covariates
-    ),
+    family = lm_data$formula$family(),
+    control.fixed = lm_control_fixed,
     control.compute = control_compute_input,
     control.inla = control_inla_input,
-    control.family = lm_control_hyper$control_family_input()
+    control.family = lm_control_family    
   ), silent = TRUE)
   if (class(lm_inla[[lm_output_name]]) == "try-error") {
     sendSweetAlert(
@@ -151,21 +150,21 @@ observeEvent(input$lm_ok, {
 
     # Close the modal with lm options
     removeModal()
-
+    lm_tabindex(lm_tabindex() + 1)
     # Create the new call to the model
     lm_inla_call_print[[lm_output_name]] <- paste0(
       "inla(data = ", "dat",
-      ", formula = ", '"', lm_formula_data$resp_var(),
-      " ~ ", ifelse(lm_formula_data$intercept(), ifelse(is.null(lm_formula_data$cov_var()), "+1", ""), "-1 + "), paste0(lm_formula_data$cov_var(), collapse = " + "), '"',
-      ifelse(input$lm_family_input == "gaussian", "", noquote(paste0(", family = ", '"', lm_control_family$family(), '"'))),
-      ifelse(1, "", paste0(
+      ", formula = ", '"', lm_data$formula$resp_var(),
+      " ~ ", ifelse(lm_data$formula$intercept(), ifelse(is.null(lm_data$formula$cov_var()), "+1", ""), "-1 + "), paste0(lm_data$formula$cov_var(), collapse = " + "), '"',
+      paste0(", family = ", '"', lm_data$formula$family(), '"'),
+      ifelse(lm_data$fixed_priors_tab == FALSE, "", paste0(
         ", control.fixed = ",
-        list_call(inla.set.control.fixed.default())
+        list_call(lm_control_fixed)
       )),
       ifelse(identical(paste0(input$ok_btn_options_modal), character(0)), "",
-        paste0(", control.compute = ", list_call(control_compute_input))
+        paste0(", control.compute = ", list_call(control_compute_input), ", control.inla = ", list_call(control_inla_input))
       ),
-      ifelse(checking_control_family(input), "", paste0(", control.family = ", list_call(lm_control_family$control_family_input()))),
+      ifelse(lm_data$hyper_tab == FALSE, "", paste0(", control.family = ", list_call(lm_control_family))),
       ")"
     )
 

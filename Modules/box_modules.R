@@ -31,12 +31,14 @@ box_model_server <- function(id){
 }
 
 #Test----
-ui <- fluidPage(
-  box_model_ui("test", "Linear Model", "Felipe", "fa-chart-area", "#12a19b")
-)
-
-server <- function(input, output, session){
-  box_model_server("test")
-}
-
-shinyApp(ui, server)
+# ui <- fluidPage(
+#   box_model_ui("test", "Linear Model", "Felipe", icon = "fa-chart-area", "#12a19b"),
+#   box_model_ui("test2", "Hyerarquical Model", "Felipe", "fa-chart-area", "#12a19b")
+# )
+# 
+# server <- function(input, output, session){
+#   box_model_server("test")
+#   box_model_server("test2")
+# }
+# 
+# shinyApp(ui, server)

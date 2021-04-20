@@ -23,12 +23,16 @@ fixed_effects_priors <- function(id, cov_var, intercept){
     id,
     function(input, output, session){
       number_variables <- reactive({
-        length(cov_var) + intercept
+        p.1 <- ifelse(is.null(cov_var), 0, length(cov_var))
+        p.2 <-  ifelse(is.null(intercept), 0, intercept)
+        return(p.1+p.2)
       })
-      
       observeEvent(number_variables(), {
         output$left_column_ui <- renderUI({
           ns <- session$ns
+          if(number_variables() == 0){
+            return()
+          } 
           lapply(1:number_variables(), function(number){
             fluidRow(
               column(
@@ -47,6 +51,9 @@ fixed_effects_priors <- function(id, cov_var, intercept){
         
         output$right_column_ui <- renderUI({
           ns <- session$ns
+          if(number_variables() == 0){
+            return(NULL)
+          } 
           lapply(1:number_variables(), function(number){
             fluidRow(
               column(
@@ -69,6 +76,9 @@ fixed_effects_priors <- function(id, cov_var, intercept){
       
       #Return prioris
       priors <- reactive({
+        if(number_variables() == 0){
+          return(NULL)
+        }
         aux <- matrix(NA_real_, nrow = number_variables(), ncol = 2)
         for(i in 1:number_variables()){
           aux[i,1] <- input[[ paste0("mean_", ifelse(i == 1 && intercept == 1, "intercept", cov_var[i-intercept]))]]
@@ -88,7 +98,7 @@ fixed_effects_priors <- function(id, cov_var, intercept){
 # )
 # 
 # server <- function(input, output, session){
-#   testando <- fixed_effects_priors("teste", c("X1", "X2"), 1)
+#   testando <- fixed_effects_priors("teste", NULL, FALSE)
 #   observeEvent(input$browser, {
 #     browser()
 #   })
