@@ -1,471 +1,114 @@
-#GLM Modal
-
-output$glm_txt_ok <- renderText({
-  translate("Ok", language = language_selected, glm_modal_words)
+#GLM Data
+observeEvent(data_input(), {
+  glm_data <<- list()
+  
+  glm_data$formula <<- list(
+    resp_var = reactive({data_input()$covariates[1]}),
+    cov_var = reactive({NULL}),
+    not_selected = reactive({data_input()$covariates}),
+    intercept = reactive({TRUE}),
+    family = reactive({"Gaussian"})
+  )
+  glm_data$fixed_priors <<- inla.set.control.fixed.default()
+  glm_data$hyper <<- inla.set.control.family.default()
+  
+  glm_data$fixed_priors_tab <<- FALSE
+  glm_data$hyper_tab <<- FALSE
 })
 
-output$glm_txt_cancel <- renderText({
-  translate("Cancel", language = language_selected, glm_modal_words)
-})
-output$glm_main_UI <- renderUI({
-  tabsetPanel(
-    id = "linear_panel",
-    selected = translate("Select Variables", language = language_selected, glm_modal_words),
-    tabPanel(
-      title = translate("Select Variables", language = language_selected, glm_modal_words),
-      column(
-        6,
-        fluidRow(
-          uiOutput("glm_uiResponse"),
-          uiOutput("glm_uiCovariates")
-        ),
-        fluidRow(
-          checkboxInput(
-            inputId = "glm_intercept",
-            label = translate("Intercept", language = language_selected, glm_modal_words),
-            value = TRUE
-          )
-        ),
-        fluidRow(
-          verbatimTextOutput(outputId = "glm_error_no_covariate")
+#GLM access buttons 
+model_buttons$glm <- smAction("glm_action_btn", "Linear Regression")
+model_boxes$glm <- actionButton(
+  inputId = "glm_box_btn",
+  box_model_ui(id = "glm_box", name = "Hierarchical Linear Models", author = "Felipe Amorim", icon = "fa-chart-area", color = "#12a19b"),
+  style = "all:unset; color:black; cursor:pointer; outline:none;"
+)
+
+#Modal UI
+observeEvent(c(input$glm_action_btn, input$glm_box_btn), {
+  validate(need(sum(input$glm_action_btn, input$glm_box_btn) > 0, ""))
+  
+  glm_data$formula <<- new_chooser(
+    id = "glm_formula",
+    selected_right = glm_data$formula$cov_var(),
+    selected_left = glm_data$formula$not_selected(),
+    resp_var = glm_data$formula$resp_var(),
+    rightLabel = "Covariates Selected",
+    leftLabel = "Covariates"
+  )
+  
+  glm_data$fixed_priors <<- fixed_effects_priors(
+    id = "glm_fixed",
+    cov_var = glm_data$formula$cov_var(),
+    intercept = glm_data$formula$intercept()
+  )
+  
+  showModal(modalDialog(fluidPage(
+    includeCSS(path = "modal/style_lm.css"),
+    shinyjs::useShinyjs(),
+    tabsetPanel(
+      id = "glm_tabs", type = "tabs",
+      tabPanel(
+        title = "Select Variables",
+        tags$br(),
+        new_chooser_UI(
+          id = "glm_formula",
+          respLabel = "Response",
+          resp_var = glm_data$formula$resp_var(),
+          selected_right = glm_data$formula$cov_var(),
+          selected_left = glm_data$formula$not_selected(),
+          familyLabel = "Family",
+          familyChoices = glm_family
         )
       ),
-      column(
-        6, fluidRow(
-          column(
-            width = 12,
-            align = "center",
-            actionButton(
-              inputId = "glm_show_fixed_prior",
-              label = translate("Edit priors", language = language_selected, glm_modal_words)
-            )
-          )
-        ),
-        fluidRow(
-          column(6, shinyjs::hidden(uiOutput("glm_uiPrioriMean"))),
-          column(6, shinyjs::hidden(uiOutput("glm_uiPrioriPrec")))
+      tabPanel(
+        title = "Fixed Effects",
+        tags$br(),
+        fixed_effects_priors_ui(id = "glm_fixed")
+      ),
+      tabPanel(
+        title = "Hyperpriors",
+        sel_hyper_ui(
+          id = "glm_hyper"
         )
       )
     ),
-    tabPanel(
-      title = translate("Hyperpriors", language = language_selected, glm_modal_words),
-      fluidRow(
-        column(6, selectInput(
-          inputId = "glm_family_input",
-          label = translate("Family", language = language_selected, glm_modal_words),
-          choices = glm_family, 
-          selected = "gaussian"
-        ),
-        uiOutput(outputId = "glm_link_function_ui")
-        ),
-        column(6, uiOutput("glm_ui_hyper_prior"),
-               shinyjs::hidden(textOutput(outputId = "glm_no_hyperprior")))
-      )
-    )
-  )
-})
-
-observeEvent(input$glm_show_fixed_prior, {
-  shinyjs::toggle(id = "glm_uiPrioriMean")
-  shinyjs::toggle(id = "glm_uiPrioriPrec")
-})
-
-output$glm_footer <- renderUI({
-  fluidRow(column(
-    12,
-    actionButton(inputId = "glm_ok", label = translate("Ok", language = language_selected, glm_modal_words)),
-    modalButton(label = translate("Cancel", language = language_selected, glm_modal_words))
-  ))
-})
-
-observeEvent(input$glm_action_btn, {
-  showModal( modalDialog(
-    useShinyjs(),
-    useSweetAlert(),
-    title = translate("Hierarchical Linear Models", language = language_selected, glm_modal_words),
-    fade = FALSE,
-    size = "l",
-    footer = uiOutput(outputId = "lm_footer"),
-    uiOutput(outputId = "glm_main_UI"),
-    tags$head(tags$style(".modal-footer{border-top: 0 none}"))
-  ))
-})
-
-observeEvent(c(input$glm_covariates, input$glm_responseVariable, input$glm_intercept), {
-  if ((length(input$glm_covariates) + input$glm_intercept) == 0) {
-    shinyjs::show(id = "glm_error_no_covariate")
-    output$glm_error_no_covariate <- renderText(translate("Error: no covariates selected", language = language_selected, glm_modal_words))
-    shinyjs::disable(id = "glm_ok")
-  } else {
-    shinyjs::hide(id = "glm_error_no_covariate")
-    shinyjs::enable(id = "glm_ok")
-  }
-})
-
-#Select Variable's UI ----
-#UI to select response variable
-output$glm_uiResponse <- renderUI({
-  if (is.null(data_input()$n.variables)) {
-    return()
-  }
-  radioGroupButtons(
-    inputId = "glm_responseVariable",
-    label = translate("Select the response variable", language = language_selected, glm_modal_words),
-    choices = data_input()$covariates,
-    justified = TRUE,
-    checkIcon = list(
-      yes = icon("ok", lib = "glyphicon")
-    )
-  )
-})
-
-#UI to select covariates
-output$glm_uiCovariates <- renderUI({
-  if (is.null(data_input()$n.variables)) {
-    return()
-  }
-  checkboxGroupButtons(
-    inputId = "glm_covariates",
-    label = translate("Select the covariates", language = language_selected, glm_modal_words),
-    choices = data_input()$covariates[data_input()$covariates != input$glm_responseVariable],
-    selected = data_input()$covariates[data_input()$covariates != input$glm_responseVariable],
-    justified = TRUE,
-    checkIcon = list(
-      yes = icon("ok",
-                 lib = "glyphicon"
-      )
-    )
-  )
-})
-
-#Element with selected variables
-glm_covariates_selected <- eventReactive(c(input$glm_responseVariable, input$glm_covariates, input$glm_intercept), {
-  if (input$glm_intercept == TRUE) {
-    if (is.null(input$glm_covariates)) {
-      list(
-        names = "(Intercept)",
-        n_covariates = 1
-      )
-    } else {
-      list(
-        names = names(model.matrix(formula(data_input()$data[, c(input$glm_responseVariable, input$glm_covariates)]),
-                                   data = data_input()$data
-        )[1, ]),
-        n_covariates = length(names(model.matrix(formula(data_input()$data[, c(input$glm_responseVariable, input$glm_covariates)]),
-                                                 data = data_input()$data
-        )[1, ]))
-      )
-    }
-  } else {
-    list(
-      names = names(model.matrix(formula(data_input()$data[, c(input$glm_responseVariable, input$glm_covariates)]),
-                                 data = data_input()$data
-      )[1, ])[-1],
-      n_covariates = length(names(model.matrix(formula(data_input()$data[, c(input$glm_responseVariable, input$glm_covariates)]),
-                                               data = data_input()$data
-      )[1, ])[-1])
-    )
-  }
-})
-
-
-#Fixed Effects' UI ----
-#Column to select mean priors to fixed effects 
-output$glm_uiPrioriMean <- renderUI({ 
-  if (is.null(data_input()$n.variables) || (length(input$glm_covariates) + input$glm_intercept) == 0) {
-    return()
-  }
-  lapply(1:glm_covariates_selected()$n_covariates, function(number) {
-    fluidRow(
-      column(6, numericInput(
-        inputId = ifelse(number == 1, paste0("glm_mean1"), paste0("glm_mean", glm_covariates_selected()$names[number])),
-        label = paste0("mean", glm_covariates_selected()$names[number]),
-        value = 0
+    tags$head(
+      tags$style(HTML(
+        "
+          .modal-header{
+          border-bottom-color: #12a19b;
+          }
+          "
       ))
     )
-  })
-})
-
-#Column to select prec priors to fixed effects 
-output$glm_uiPrioriPrec <- renderUI({ # Generate the input boxes for the precision according to the number of columns of input file
-  if (is.null(data_input()$n.variables) || (length(input$glm_covariates) + input$glm_intercept) == 0) {
-    return()
-  }
-  lapply(1:glm_covariates_selected()$n_covariates, function(number) {
-    fluidRow(
-      column(6, numericInput(
-        inputId = ifelse(number == 1, paste0("glm_prec1"), paste0("glm_prec", glm_covariates_selected()$names[number])),
-        label = paste0("prec", glm_covariates_selected()$names[number]),
-        value = ifelse((number == 1) && (input$glm_intercept == TRUE), 0, 0.001)
-      ))
-    )
-  })
-})
-
-#Hyperpriors' UI and select Family ----
-
-#Show text if the family have no hyperparameter
-observeEvent(input$glm_family_input, {
-  shinyjs::toggle(id = "glm_no_hyperprior", condition = n_hyper(input$glm_family_input) == 0)
+  ),
+  title = "Linear Model",
+  size = "l",
+  fade = FALSE,
+  footer = tagList(actionButton(inputId = "glm_ok", label = "Ok"), modalButton(label = "Cancel"))
+  ))
   
-  output$glm_link_function_ui <- renderUI({
-    selectInput(inputId = "glm_link_function",
-                label = translate("Select the link function", language = language_selected, glm_modal_words),
-                choices = link_avaliable(input$glm_family_input),
-                selected = link_avaliable(input$glm_family_input)[1],
-                multiple = FALSE)
-    
-  })
 })
 
-output$glm_no_hyperprior <- renderText({
-  translate("No Hyperparameter avaliabe for this family", language = language_selected, glm_modal_words)
+observeEvent(input$glm_tabs, {
+  glm_data$fixed_priors <<- fixed_effects_priors(
+    id = "glm_fixed",
+    cov_var = glm_data$formula$cov_var(),
+    intercept = glm_data$formula$intercept()
+  )
+  
+  glm_data$hyper <<- sel_hyper(id = "glm_hyper",
+                              Link = FALSE,
+                              sel_family = glm_data$formula$family(),
+                              linkLabel = NULL)
 })
 
-# Create the UI with options to user select hyper priors distributions
-output$glm_ui_hyper_prior <- renderUI({
-  if(n_hyper(input$glm_family_input) == 0){
-    return()
-  }else{
-  lapply(1:n_hyper(input$glm_family_input), function(number) {
-    fluidRow(column(
-      6, selectInput(
-        inputId = paste0("glm_hyper_dist_", number),
-        label = paste0(translate("Select the distribution of ", language = language_selected, glm_modal_words), name_hyper(input$glm_family_input, number)),
-        choices = priors_distributions,
-        selected = hyper_default(input$glm_family_input, number),
-        multiple = FALSE
-      ),
-      uiOutput(outputId = paste0("glm_numeric_input_hyper_", number))
-    ))
-  })
-  }
+observeEvent(input$glm_tabs,{
+  glm_data$fixed_priors_tab <<- ifelse(input$glm_tabs == "Fixed Effects", TRUE, glm_data$fixed_priors_tab)
+  glm_data$hyper_tab <<- ifelse(input$glm_tabs == "Hyperpriors", TRUE, glm_data$hyper_tab)
 })
 
-
-# Create the UI with options to user input the values of the first hyperparamether
-output$glm_numeric_input_hyper_1 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_1")]]), hyper_default(input$glm_family_input, 1), input[[ paste0("glm_hyper_dist_", 1)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_1")]]), hyper_default(input$glm_family_input, 1), input[[ paste0("glm_hyper_dist_", 1)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_1_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 1)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the second hyperparamether
-output$glm_numeric_input_hyper_2 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_2")]]), hyper_default(input$glm_family_input, 2), input[[ paste0("glm_hyper_dist_", 2)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_2")]]), hyper_default(input$glm_family_input, 2), input[[ paste0("glm_hyper_dist_", 2)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_2_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 2)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the third hyperparamether
-output$glm_numeric_input_hyper_3 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_3")]]), hyper_default(input$glm_family_input, 3), input[[ paste0("glm_hyper_dist_", 3)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_3")]]), hyper_default(input$glm_family_input, 3), input[[ paste0("glm_hyper_dist_", 3)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_3_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 3)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the fourth hyperparamether
-output$glm_numeric_input_hyper_4 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_4")]]), hyper_default(input$glm_family_input, 4), input[[ paste0("glm_hyper_dist_", 4)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_4")]]), hyper_default(input$glm_family_input, 4), input[[ paste0("glm_hyper_dist_", 4)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_4_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 4)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the fifth hyperparamether
-output$glm_numeric_input_hyper_5 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_5")]]), hyper_default(input$glm_family_input, 5), input[[ paste0("glm_hyper_dist_", 5)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_5")]]), hyper_default(input$glm_family_input, 5), input[[ paste0("glm_hyper_dist_", 5)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_5_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 5)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the sixth hyperparamether
-output$glm_numeric_input_hyper_6 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_6")]]), hyper_default(input$glm_family_input, 6), input[[ paste0("glm_hyper_dist_", 6)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_6")]]), hyper_default(input$glm_family_input, 6), input[[ paste0("glm_hyper_dist_", 6)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_6_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 6)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the seventh hyperparamether
-output$glm_numeric_input_hyper_7 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_7")]]), hyper_default(input$glm_family_input, 7), input[[ paste0("glm_hyper_dist_", 7)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_7")]]), hyper_default(input$glm_family_input, 7), input[[ paste0("glm_hyper_dist_", 7)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_7_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 7)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the eighth hyperparamether
-output$glm_numeric_input_hyper_8 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_8")]]), hyper_default(input$glm_family_input, 8), input[[ paste0("glm_hyper_dist_", 8)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_8")]]), hyper_default(input$glm_family_input, 8), input[[ paste0("glm_hyper_dist_", 8)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_8_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 8)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the ninth hyperparamether
-output$glm_numeric_input_hyper_9 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_9")]]), hyper_default(input$glm_family_input, 9), input[[ paste0("glm_hyper_dist_", 9)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_9")]]), hyper_default(input$glm_family_input, 9), input[[ paste0("glm_hyper_dist_", 9)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_9_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 9)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the tenth hyperparamether
-output$glm_numeric_input_hyper_10 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_10")]]), hyper_default(input$glm_family_input, 10), input[[ paste0("glm_hyper_dist_", 10)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_10")]]), hyper_default(input$glm_family_input, 10), input[[ paste0("glm_hyper_dist_", 10)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_10_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 10)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the eleventh hyperparamether
-output$glm_numeric_input_hyper_11 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_11")]]), hyper_default(input$glm_family_input, 11), input[[ paste0("glm_hyper_dist_", 11)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_11")]]), hyper_default(input$glm_family_input, 11), input[[ paste0("glm_hyper_dist_", 11)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_11_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 11)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the twelfth hyperparamether
-output$glm_numeric_input_hyper_12 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_12")]]), hyper_default(input$glm_family_input, 12), input[[ paste0("glm_hyper_dist_", 12)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_12")]]), hyper_default(input$glm_family_input, 12), input[[ paste0("glm_hyper_dist_", 12)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_12_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 12)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the thirteenth hyperparamether
-output$glm_numeric_input_hyper_13 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_13")]]), hyper_default(input$glm_family_input, 13), input[[ paste0("glm_hyper_dist_", 13)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_13")]]), hyper_default(input$glm_family_input, 13), input[[ paste0("glm_hyper_dist_", 13)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_13_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 13)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the fourteenth hyperparamether
-output$glm_numeric_input_hyper_14 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_14")]]), hyper_default(input$glm_family_input, 14), input[[ paste0("glm_hyper_dist_", 14)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_14")]]), hyper_default(input$glm_family_input, 14), input[[ paste0("glm_hyper_dist_", 14)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_14_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 14)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the fifteenth hyperparamether
-output$glm_numeric_input_hyper_15 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_15")]]), hyper_default(input$glm_family_input, 15), input[[ paste0("glm_hyper_dist_", 15)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_15")]]), hyper_default(input$glm_family_input, 15), input[[ paste0("glm_hyper_dist_", 15)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_15_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 15)[n_param]
-    )
-  })
-})
-
-# Create the UI with options to user input the values of the sixteenth hyperparamether
-output$glm_numeric_input_hyper_16 <- renderUI({
-  if (n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_16")]]), hyper_default(input$glm_family_input, 16), input[[ paste0("glm_hyper_dist_", 16)]])) == 0) {
-    return()
-  }
-  lapply(1:n_param_prior(ifelse(is.null(input[[ paste0("glm_hyper_dist_16")]]), hyper_default(input$glm_family_input, 16), input[[ paste0("glm_hyper_dist_", 16)]])), function(n_param) {
-    numericInput(
-      inputId = paste0("glm_input_hyper_16_param_", n_param),
-      label = paste0(translate("Parameter ", language = language_selected, glm_modal_words), n_param),
-      value = hyper_default_param(input$glm_family_input, 16)[n_param]
-    )
-  })
-})
 
 # What happens after the user clicks in ok to make the model
 glm_tabindex <- reactiveVal(0)

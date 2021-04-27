@@ -48,7 +48,9 @@ observeEvent(c(input$linear_action_btn_2, input$lm_box), {
           selected_right = lm_data$formula$cov_var(),
           selected_left = lm_data$formula$not_selected(),
           familyLabel = "Family",
-          familyChoices = lm_family
+          familyChoices = lm_family,
+          data = data_input()$data,
+          resp_numeric = TRUE
         )
       ),
       tabPanel(

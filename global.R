@@ -8,6 +8,7 @@ library(rhandsontable)
 library(shinyWidgets)
 library(DT)
 library(shinydashboard)
+library(dplyr)
 
 
 #Functions Used
