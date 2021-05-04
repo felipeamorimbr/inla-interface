@@ -16,8 +16,8 @@ observeEvent(data_input(), {
   glm_data$hyper_tab <<- FALSE
 })
 
-#GLM access buttons 
-model_buttons$glm <- smAction("glm_action_btn", "Linear Regression")
+#GLM access buttons
+model_buttons$glm <- smAction("glm_action_btn", "Hierarchical Linear Regression")
 model_boxes$glm <- actionButton(
   inputId = "glm_box_btn",
   box_model_ui(id = "glm_box", name = "Hierarchical Linear Models", author = "Felipe Amorim", icon = "fa-chart-area", color = "#12a19b"),
@@ -99,9 +99,9 @@ observeEvent(input$glm_tabs, {
   )
   
   glm_data$hyper <<- sel_hyper(id = "glm_hyper",
-                              Link = FALSE,
+                              Link = TRUE,
                               sel_family = glm_data$formula$family(),
-                              linkLabel = NULL)
+                              linkLabel = "Select the Link Function")
 })
 
 observeEvent(input$glm_tabs,{
