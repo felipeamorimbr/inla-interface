@@ -93,6 +93,9 @@ observeEvent(input$file_action_btn, {
 observeEvent(input$file, {
   if (!is.null(input$file) && (file_ext(input$file$datapath) %in% accetable_formats)) {
     shinyjs::enable("file_load_btn")
+    shinyjs::hide("file_adv_options_btn")
+  }
+  if(file_ext(input$file$datapath) %in% accetable_formats_options){
     shinyjs::show("file_adv_options_btn")
   }
   if (!(file_ext(input$file$datapath) %in% accetable_formats)) {
@@ -102,6 +105,8 @@ observeEvent(input$file, {
 
 ## -- Modal File Options
 observeEvent(input$file, {
+  if(!file_ext(input$file$datapath) %in% accetable_formats_options)
+    return(NULL)
   output$file_adv_options_ui <- renderUI({
     switch(file_ext(input$file$datapath),
       "txt" = ,
@@ -137,7 +142,8 @@ observeEvent(input$file, {
             width = "20%"
           )
         )
-      )
+      ),
+      
     )
   })
 })
@@ -175,13 +181,24 @@ data_input <- eventReactive(c(
     return(NULL)
   } else {
     indata <- switch(file_ext(input$file$datapath),
-                     "txt" = ,
+                     "txt" = read.table(input$file$datapath,
+                                        header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
+                                        sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
+                                        quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
+                                        dec = ifelse(is.null(input$csv_dec), ",", input$csv_dec)
+                     ),
                      "csv" = read.table(input$file$datapath,
                                         header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
                                         sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
                                         quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
                                         dec = ifelse(is.null(input$csv_dec), ",", input$csv_dec)
-                     )
+                     ),
+                     "dta" = read_dta(file = input$file$datapath),
+                     "sas7bdat" = read_sas(data_file = input$file$datapath),
+                     "sas7bcat" = read_sas(data_file = input$file$datapath),
+                     "zsav" = read_sav(file = input$file$datapath),
+                     "xpt" = read_xpt(file = input$file$datapath)
+                     
     )
     names.variables <- names(model.matrix(formula(indata), data = indata)[1, ])
     covariates <- names(indata)

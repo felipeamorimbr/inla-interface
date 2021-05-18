@@ -9,6 +9,7 @@ library(shinyWidgets)
 library(DT)
 library(shinydashboard)
 library(dplyr)
+library(haven)
 
 
 #Functions Used
@@ -41,7 +42,14 @@ load("data/lm_modal_words.RData")
 model_buttons <- list()
 model_boxes <- list()
 
-accetable_formats <- c("csv", "txt")
+accetable_formats <- c("csv", "txt",
+                       "dta", #Stata File
+                       "sas7bcat","sas7bdat", #SAS files
+                       "zsav", #spss files
+                       "xpt") #SAS transport files
+
+accetable_formats_options <- c("csv", "txt")
+
 control_compute_input <- inla.set.control.compute.default()
 control_compute_input[[11]] <- inla.getOption("smtp")
 
