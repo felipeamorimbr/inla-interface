@@ -65,7 +65,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
             aux_hyper_dist <- paste0("hyper_dist_", i)
             aux_hyper_ui <- paste0("hyper_ui_", i)
             list_ui[[i]] <- column(6, selectInput(inputId = ns(aux_hyper_dist), choices = priors_distributions, selected = hyper_default(family_react(), i),
-                                                  label = paste0("Selct Priros for ", name_hyper(family_react(), i)),
+                                                  label = paste0(translate("Selct Priros for ", language = language_selected, words_one), name_hyper(family_react(), i)),
                                                   width = "100%"),
                                    uiOutput(outputId = ns(aux_hyper_ui)))
           }
@@ -83,7 +83,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 1:n_param_prior(input$hyper_dist_1)){
             aux_hyper_id <- paste0("hyper_dist_1_param_", j)
             list_ui_hyper_1[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 1)[j])
           }
           list_ui_hyper_1
@@ -100,7 +100,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 1:n_param_prior(input$hyper_dist_2)){
             aux_hyper_id <- paste0("hyper_dist_1_param_", j)
             list_ui_hyper_2[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 2)[j])
           }
           list_ui_hyper_2
@@ -117,7 +117,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 3:n_param_prior(input$hyper_dist_3)){
             aux_hyper_id <- paste0("hyper_dist_3_param_", j)
             list_ui_hyper_3[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 3)[j])
           }
           list_ui_hyper_3
@@ -134,7 +134,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 4:n_param_prior(input$hyper_dist_4)){
             aux_hyper_id <- paste0("hyper_dist_4_param_", j)
             list_ui_hyper_4[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 4)[j])
           }
           list_ui_hyper_4
@@ -151,7 +151,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 5:n_param_prior(input$hyper_dist_5)){
             aux_hyper_id <- paste0("hyper_dist_5_param_", j)
             list_ui_hyper_5[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 5)[j])
           }
           list_ui_hyper_5
@@ -168,7 +168,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 6:n_param_prior(input$hyper_dist_6)){
             aux_hyper_id <- paste0("hyper_dist_6_param_", j)
             list_ui_hyper_6[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 6)[j])
           }
           list_ui_hyper_6
@@ -185,7 +185,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 7:n_param_prior(input$hyper_dist_7)){
             aux_hyper_id <- paste0("hyper_dist_7_param_", j)
             list_ui_hyper_7[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 7)[j])
           }
           list_ui_hyper_7
@@ -202,7 +202,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 8:n_param_prior(input$hyper_dist_8)){
             aux_hyper_id <- paste0("hyper_dist_8_param_", j)
             list_ui_hyper_8[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 8)[j])
           }
           list_ui_hyper_8
@@ -219,7 +219,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 9:n_param_prior(input$hyper_dist_9)){
             aux_hyper_id <- paste0("hyper_dist_9_param_", j)
             list_ui_hyper_9[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                 label = paste0("Parameter", j),
+                                                 label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                  value = hyper_default_param(family_react(), 9)[j])
           }
           list_ui_hyper_9
@@ -235,7 +235,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 10:n_param_prior(input$hyper_dist_10)){
             aux_hyper_id <- paste0("hyper_dist_10_param_", j)
             list_ui_hyper_10[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                  label = paste0("Parameter", j),
+                                                  label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                   value = hyper_default_param(family_react(), 10)[j])
           }
           list_ui_hyper_10
@@ -252,7 +252,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 11:n_param_prior(input$hyper_dist_11)){
             aux_hyper_id <- paste0("hyper_dist_11_param_", j)
             list_ui_hyper_11[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                  label = paste0("Parameter", j),
+                                                  label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                   value = hyper_default_param(family_react(), 11)[j])
           }
           list_ui_hyper_11
@@ -269,7 +269,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 12:n_param_prior(input$hyper_dist_12)){
             aux_hyper_id <- paste0("hyper_dist_12_param_", j)
             list_ui_hyper_12[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                  label = paste0("Parameter", j),
+                                                  label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                   value = hyper_default_param(family_react(), 12)[j])
           }
           list_ui_hyper_12
@@ -286,7 +286,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 13:n_param_prior(input$hyper_dist_13)){
             aux_hyper_id <- paste0("hyper_dist_13_param_", j)
             list_ui_hyper_13[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                  label = paste0("Parameter", j),
+                                                  label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                   value = hyper_default_param(family_react(), 13)[j])
           }
           list_ui_hyper_13
@@ -303,7 +303,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 14:n_param_prior(input$hyper_dist_14)){
             aux_hyper_id <- paste0("hyper_dist_14_param_", j)
             list_ui_hyper_14[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                  label = paste0("Parameter", j),
+                                                  label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                   value = hyper_default_param(family_react(), 14)[j])
           }
           list_ui_hyper_14
@@ -320,7 +320,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 15:n_param_prior(input$hyper_dist_15)){
             aux_hyper_id <- paste0("hyper_dist_15_param_", j)
             list_ui_hyper_15[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                  label = paste0("Parameter", j),
+                                                  label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                   value = hyper_default_param(family_react(), 15)[j])
           }
           list_ui_hyper_15
@@ -337,7 +337,7 @@ sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
           for(j in 16:n_param_prior(input$hyper_dist_16)){
             aux_hyper_id <- paste0("hyper_dist_16_param_", j)
             list_ui_hyper_16[[j]] <- numericInput(inputId = ns(aux_hyper_id),
-                                                  label = paste0("Parameter", j),
+                                                  label = paste0(translate("Parameter", language = language_selected, words_one), j),
                                                   value = hyper_default_param(family_react(), 16)[j])
           }
           list_ui_hyper_16

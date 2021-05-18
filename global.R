@@ -54,6 +54,8 @@ lm_family <- c("gaussian", "t")
 glm_family <- names(inla.models()$likelihood)
 
 language_selected <- ifelse(!exists("input$language"), "en", input$language)
+words_one <- NULL
+
 
 avaliable_languages <- avaliable_languages_RData$language
 

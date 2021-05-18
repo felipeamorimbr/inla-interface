@@ -81,7 +81,7 @@ new_chooser_UI <- function(id, respLabel,
         ),
         checkboxInput(
           inputId = ns("intercept"),
-          label = "Intercept",
+          label = translate("Intercept", language = language_selected, words_one),
           value = TRUE
         )
       ),

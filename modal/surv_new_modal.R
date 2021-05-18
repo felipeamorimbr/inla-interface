@@ -22,8 +22,8 @@ observeEvent(c(input$survival_action_btn_2, input$surv_box), {
     selected_left = surv_data$formula$not_selected(),
     resp_var = surv_data$formula$resp_var(),
     status_var = surv_data$formula$status_var(),
-    rightLabel = "Covariates Selected",
-    leftLabel = "Covariates"
+    rightLabel = translate("Covariates Selected", language = language_selected, words_one),
+    leftLabel = translate("Covariates", language = language_selected, words_one)
   )
   surv_data$fixed_priors <<- fixed_effects_priors(
     id = "surv_fixed",
@@ -36,26 +36,26 @@ observeEvent(c(input$survival_action_btn_2, input$surv_box), {
     tabsetPanel(
       id = "surv_tabs", type = "tabs",
       tabPanel(
-        title = "Select Variables",
+        title = translate("Select Variables", language = language_selected, words_one),
         tags$br(),
         new_chooser_UI_surv(
           id = "surv_formula",
-          respLabel = "Time",
+          respLabel = translate("Time", language = language_selected, words_one),
           resp_var = surv_data$formula$resp_var(),
           status_var = surv_data$formula$status_var(),
           selected_right = surv_data$formula$cov_var(),
           selected_left = surv_data$formula$not_selected(),
-          familyLabel = "Family",
+          familyLabel = translate("Family", language = language_selected, words_one),
           familyChoices = surv_family
         )
       ),
       tabPanel(
-        title = "Fixed Effects",
+        title = translate("Fixed Effects", language = language_selected, words_one),
         tags$br(),
         fixed_effects_priors_ui(id = "surv_fixed")
       ),
       tabPanel(
-        title = "Hyperparameters",
+        title = translate("Hyperparameter Prior", language = language_selected, words_one),
         sel_hyper_ui(
           id = "surv_family",
           linkLabel = NULL
@@ -72,17 +72,17 @@ observeEvent(c(input$survival_action_btn_2, input$surv_box), {
       ))
     )
   ),
-  title = "Survival Model",
+  title = translate("Survival Model", language = language_selected, words_one),
   size = "l",
   fade = FALSE,
   footer = tagList(actionButton(inputId = "surv_ok", label = "Ok"), modalButton(label = "Cancel"))
   ))
 })
 
-model_buttons$surv <- smAction("survival_action_btn_2", "Survival Model")
+model_buttons$surv <- smAction("survival_action_btn_2", translate("Survival Model", language = language_selected, words_one))
 model_boxes$surv <- actionButton(
   inputId = "surv_box_btn",
-  box_model_ui(id = "surv_box", name = "Survival Model", author = "Adriana Lana", icon = "fa-chart-area", color = "#12a19b"),
+  box_model_ui(id = "surv_box", name = translate("Survival Model", language = language_selected, words_one), author = "Adriana Lana", icon = "fa-chart-area", color = "#12a19b"),
   style = "all:unset; color:black; cursor:pointer; outline:none;"
 )
 observeEvent(input$surv_tabs,{
@@ -160,9 +160,9 @@ if (length(variaveis) > 0)
   if (class(surv_inla[[surv_output_name]]) == "try-error") {
     sendSweetAlert(
       session = session,
-      title = translate("Error in inla", language = language_selected, lm_modal_words),
+      title = translate("Error in inla", language = language_selected, words_one),
       text = tags$span(
-        translate("INLA has crashed. INLA try to run and failed.", language = language_selected, lm_modal_words)
+        translate("INLA has crashed. INLA try to run and failed.", language = language_selected, words_one)
       ),
       html = TRUE,
       type = "error",
@@ -197,7 +197,7 @@ if (length(variaveis) > 0)
     appendTab(
       inputId = "mytabs", select = TRUE,
       tabPanel(
-        title = paste0(translate("Model", language = language_selected, lm_modal_words), surv_tabindex()),
+        title = paste0(translate("Model", language = language_selected, words_one), surv_tabindex()),
         useShinydashboard(),
         useShinyjs(),
         fluidRow(
@@ -205,12 +205,12 @@ if (length(variaveis) > 0)
             width = 6,
             box(
               id = paste0("surv_box_call_", surv_tabindex()),
-              title = translate("Call", language = language_selected, lm_modal_words),
+              title = translate("Call", language = language_selected, words_one),
               status = "primary",
               solidHeader = TRUE,
               width = 12,
               textOutput(outputId = paste0("surv_call", surv_tabindex())),
-              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_call", surv_tabindex()))),
+              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_call", surv_tabindex()))),
               tags$div(
                 class = "collapse", id = paste0("showcode_call", surv_tabindex()),
                 tags$code(
@@ -224,7 +224,7 @@ if (length(variaveis) > 0)
               ),
               footer = downloadBttn(
                 outputId = paste0("download_script_", surv_tabindex()),
-                label = "Download Script",
+                label = translate("Download Script", language = language_selected, words_one),
                 style = "material-flat",
                 color = "primary",
                 size = "xs"
@@ -235,12 +235,12 @@ if (length(variaveis) > 0)
             width = 6,
             box(
               id = paste0("surv_box_time_used", surv_tabindex()),
-              title = translate("Time Used", language = language_selected, lm_modal_words),
+              title = translate("Time Used", language = language_selected, words_one),
               status = "primary",
               solidHeader = TRUE,
               width = 12,
               dataTableOutput(outputId = paste0("surv_time_used_", surv_tabindex())),
-              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_time", surv_tabindex()))),
+              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_time", surv_tabindex()))),
               tags$div(
                 class = "collapse", id = paste0("showcode_time", surv_tabindex()),
                 tags$code(
@@ -292,12 +292,12 @@ if (length(variaveis) > 0)
             width = 12,
             box(
               id = paste0("surv_box_fix_effects_", surv_tabindex()),
-              title = translate("Fixed Effects", language = language_selected, lm_modal_words),
+              title = translate("Fixed Effects", language = language_selected, words_one),
               status = "primary",
               solidHeader = TRUE,
               width = 12,
               dataTableOutput(outputId = paste0("surv_fix_effects_", surv_tabindex())),
-              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", surv_tabindex()))),
+              tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", surv_tabindex()))),
               tags$div(
                 class = "collapse", id = paste0("showcode_fix_effects_", surv_tabindex()),
                 tags$code(
@@ -325,12 +325,12 @@ if (length(variaveis) > 0)
                 condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
                 box(
                   id = paste0("surv_box_model_hyper_", surv_tabindex()),
-                  title = translate("Model Hyperparameters", language = language_selected, lm_modal_words),
+                  title = translate("Model Hyperparameters", language = language_selected, words_one),
                   status = "primary",
                   solidHeader = TRUE,
                   width = 6,
                   dataTableOutput(outputId = paste0("surv_model_hyper_", surv_tabindex())),
-                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", surv_tabindex()))),
+                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", surv_tabindex()))),
                   tags$div(
                     class = "collapse", id = paste0("showcode_model_hyper_", surv_tabindex()),
                     tags$code(
@@ -346,12 +346,12 @@ if (length(variaveis) > 0)
               ),
               box(
                 id = paste0("surv_box_neffp_", surv_tabindex()),
-                title = translate("Expected Effective Number of Parameters in the Model", language = language_selected, lm_modal_words),
+                title = translate("Expected Effective Number of Parameters in the Model", language = language_selected, words_one),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 6,
                 dataTableOutput(outputId = paste0("surv_neffp_", surv_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", surv_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", surv_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_neffp_", surv_tabindex()),
                   tags$code(
@@ -368,12 +368,12 @@ if (length(variaveis) > 0)
                 condition = "(input.ccompute_input_4 != '' &&  input.ccompute_input_4 == true)",
                 box(
                   id = paste0("surv_box_dic_waic_", surv_tabindex()),
-                  title = translate("DIC and WAIC", language = language_selected, lm_modal_words),
+                  title = translate("DIC and WAIC", language = language_selected, words_one),
                   status = "primary",
                   solidHeader = TRUE,
                   width = 6,
                   dataTableOutput(outputId = paste0("surv_dic_waic_", surv_tabindex())),
-                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, lm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", surv_tabindex()))),
+                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", surv_tabindex()))),
                   tags$div(
                     class = "collapse", id = paste0("showcode_dic_waic_", surv_tabindex()),
                     tags$code(

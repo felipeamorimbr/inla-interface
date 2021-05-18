@@ -35,31 +35,31 @@ sel_formula <- function(id, variables, resp_label, left_label, right_label, fami
 }
 
 # Test ----
-dados <- read.csv2("https://raw.githubusercontent.com/felipeamorimbr/inla-interface/master/data/ex-database.csv")
-load("data/lm_modal_words.RData")
-language_selected <- "en"
-
-ui <- fluidPage(
-  sel_formula_ui(
-    id = "lm_formula"
-  ),
-  actionButton("test", "ok")
-)
-
-server <- function(input, output, session){
-  imprimir <- sel_formula(
-    id = "lm_formula",
-    variables = row.names(USArrests),
-    resp_label = "Response Variable",
-    left_label = "Variables to Choose",
-    right_label = "Selected Variable",
-    familyLabel = "Family",
-    familyChoices = c("t", "gaussian")
-  )
-  observeEvent(input$test, {
-    browser()
-  })
-}
-
-shinyApp(ui, server)
-
+# dados <- read.csv2("https://raw.githubusercontent.com/felipeamorimbr/inla-interface/master/data/ex-database.csv")
+# load("data/lm_modal_words.RData")
+# language_selected <- "en"
+# 
+# ui <- fluidPage(
+#   sel_formula_ui(
+#     id = "lm_formula"
+#   ),
+#   actionButton("test", "ok")
+# )
+# 
+# server <- function(input, output, session){
+#   imprimir <- sel_formula(
+#     id = "lm_formula",
+#     variables = row.names(USArrests),
+#     resp_label = "Response Variable",
+#     left_label = "Variables to Choose",
+#     right_label = "Selected Variable",
+#     familyLabel = "Family",
+#     familyChoices = c("t", "gaussian")
+#   )
+#   observeEvent(input$test, {
+#     browser()
+#   })
+# }
+# 
+# shinyApp(ui, server)
+# 

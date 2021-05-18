@@ -17,10 +17,10 @@ observeEvent(data_input(), {
 })
 
 #GLM access buttons
-model_buttons$glm <- smAction("glm_action_btn", "Hierarchical Linear Regression")
+model_buttons$glm <- smAction("glm_action_btn", translate("Hierarchical Linear Regression", language = language_selected, words_one))
 model_boxes$glm <- actionButton(
   inputId = "glm_box_btn",
-  box_model_ui(id = "glm_box", name = "Hierarchical Linear Models", author = "Felipe Amorim", icon = "fa-chart-area", color = "#12a19b"),
+  box_model_ui(id = "glm_box", name = translate("Hierarchical Linear Models", language = language_selected, words_one), author = "Felipe Amorim", icon = "fa-chart-area", color = "#12a19b"),
   style = "all:unset; color:black; cursor:pointer; outline:none;"
 )
 
@@ -33,8 +33,8 @@ observeEvent(c(input$glm_action_btn, input$glm_box_btn), {
     selected_right = glm_data$formula$cov_var(),
     selected_left = glm_data$formula$not_selected(),
     resp_var = glm_data$formula$resp_var(),
-    rightLabel = "Covariates Selected",
-    leftLabel = "Covariates"
+    rightLabel = translate("Covariates Selected", language = language_selected, words_one),
+    leftLabel = translate("Covariates", language = language_selected, words_one)
   )
   
   glm_data$fixed_priors <<- fixed_effects_priors(
@@ -49,25 +49,25 @@ observeEvent(c(input$glm_action_btn, input$glm_box_btn), {
     tabsetPanel(
       id = "glm_tabs", type = "tabs",
       tabPanel(
-        title = "Select Variables",
+        title = translate("Select Variables", language = language_selected, words_one),
         tags$br(),
         new_chooser_UI(
           id = "glm_formula",
-          respLabel = "Response",
+          respLabel = translate("Response", language = language_selected, words_one),
           resp_var = glm_data$formula$resp_var(),
           selected_right = glm_data$formula$cov_var(),
           selected_left = glm_data$formula$not_selected(),
-          familyLabel = "Family",
+          familyLabel = translate("Family", language = language_selected, words_one),
           familyChoices = glm_family
         )
       ),
       tabPanel(
-        title = "Fixed Effects",
+        title = translate("Fixed Effects", language = language_selected, words_one),
         tags$br(),
         fixed_effects_priors_ui(id = "glm_fixed")
       ),
       tabPanel(
-        title = "Hyperpriors",
+        title = translate("Hyperparameter Prior", language = language_selected, words_one),
         sel_hyper_ui(
           id = "glm_hyper"
         )
@@ -83,10 +83,10 @@ observeEvent(c(input$glm_action_btn, input$glm_box_btn), {
       ))
     )
   ),
-  title = "Linear Model",
+  title = translate("Hierarchical Linear Regression", language = language_selected, words_one),
   size = "l",
   fade = FALSE,
-  footer = tagList(actionButton(inputId = "glm_ok", label = "Ok"), modalButton(label = "Cancel"))
+  footer = tagList(actionButton(inputId = "glm_ok", label = "Ok"), modalButton(label = translate("Cancel", language = language_selected, words_one)))
   ))
   
 })
@@ -101,12 +101,12 @@ observeEvent(input$glm_tabs, {
   glm_data$hyper <<- sel_hyper(id = "glm_hyper",
                               Link = TRUE,
                               sel_family = glm_data$formula$family(),
-                              linkLabel = "Select the Link Function")
+                              linkLabel = translate("Select the Link Function", language = language_selected, words_one))
 })
 
 observeEvent(input$glm_tabs,{
-  glm_data$fixed_priors_tab <<- ifelse(input$glm_tabs == "Fixed Effects", TRUE, glm_data$fixed_priors_tab)
-  glm_data$hyper_tab <<- ifelse(input$glm_tabs == "Hyperpriors", TRUE, glm_data$hyper_tab)
+  glm_data$fixed_priors_tab <<- ifelse(input$glm_tabs == translate("Fixed Effects", language = language_selected, words_one), TRUE, glm_data$fixed_priors_tab)
+  glm_data$hyper_tab <<- ifelse(input$glm_tabs == translate("Hyperparameter Prior", language = language_selected, words_one), TRUE, glm_data$hyper_tab)
 })
 
 
@@ -124,20 +124,20 @@ observeEvent(input$glm_ok, {
   if (glm_check_regression(input, glm_covariates_selected(), glm_priors, data_input()) == FALSE) {
     sendSweetAlert(
       session = session,
-      title = translate("Error", language = language_selected, glm_modal_words = glm_modal_words),
+      title = translate("Error", language = language_selected, words_one),
       text = tags$span(
         ifelse(!(is.numeric(data_input()$data[, input$glm_responseVariable])),
-               paste0(translate("-The response variable must be numeric", language = language_selected, glm_modal_words)),
+               paste0(translate("-The response variable must be numeric", language = language_selected, words_one)),
                ""
         ),
         tags$br(),
         ifelse(!(length(grep("glm_mean", names(input))) == 0) && any(is.na(glm_priors)),
-               paste0(translate("-The priors of fixed effects must be numeric", language = language_selected, glm_modal_words)),
+               paste0(translate("-The priors of fixed effects must be numeric", language = language_selected, words_one)),
                ""
         ),
         tags$br(),
         ifelse(!(length(grep("glm_hyper_dist", names(input))) == 0) && any(is.na(unlist(control_family_input(input)))),
-               paste0(translate("-The Hyperprioris must be numeric", language = language_selected, glm_modal_words)),
+               paste0(translate("-The Hyperprioris must be numeric", language = language_selected, words_one)),
                ""
         )
       ),
@@ -185,9 +185,9 @@ observeEvent(input$glm_ok, {
     if (class(glm_inla[[glm_output_name]]) == "try-error") {
       sendSweetAlert(
         session = session,
-        title = translate("Error in inla", language = language_selected, glm_modal_words),
+        title = translate("Error in inla", language = language_selected, words_one),
         text = tags$span(
-          translate("INLA has crashed. INLA try to run and failed.", language = language_selected, glm_modal_words)
+          translate("INLA has crashed. INLA try to run and failed.", language = language_selected, words_one)
         ),
         html = TRUE,
         type = "error",
@@ -224,7 +224,7 @@ observeEvent(input$glm_ok, {
       appendTab(
         inputId = "mytabs", select = TRUE,
         tabPanel(
-          title = paste0(translate("Model", language = language_selected, glm_modal_words), glm_tabindex()),
+          title = paste0(translate("Model", language = language_selected, words_one), glm_tabindex()),
           useShinydashboard(),
           useShinyjs(),
           fluidRow(
@@ -232,12 +232,12 @@ observeEvent(input$glm_ok, {
               width = 6,
               box(
                 id = paste0("glm_box_call_", glm_tabindex()),
-                title = translate("Call", language = language_selected, glm_modal_words),
+                title = translate("Call", language = language_selected, words_one),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 textOutput(outputId = paste0("glm_call", glm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, glm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_call", glm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_call", glm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_call", glm_tabindex()),
                   tags$code(
@@ -255,12 +255,12 @@ observeEvent(input$glm_ok, {
               width = 6,
               box(
                 id = paste0("glm_box_time_used", glm_tabindex()),
-                title = translate("Time Used", language = language_selected, glm_modal_words),
+                title = translate("Time Used", language = language_selected, words_one),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 dataTableOutput(outputId = paste0("glm_time_used_", glm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, glm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_time", glm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_time", glm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_time", glm_tabindex()),
                   tags$code(
@@ -280,12 +280,12 @@ observeEvent(input$glm_ok, {
               width = 12,
               box(
                 id = paste0("glm_box_fix_effects_", glm_tabindex()),
-                title = translate("Fixed Effects", language = language_selected, glm_modal_words),
+                title = translate("Fixed Effects", language = language_selected, words_one),
                 status = "primary",
                 solidHeader = TRUE,
                 width = 12,
                 dataTableOutput(outputId = paste0("glm_fix_effects_", glm_tabindex())),
-                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, glm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", glm_tabindex()))),
+                tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_fix_effects_", glm_tabindex()))),
                 tags$div(
                   class = "collapse", id = paste0("showcode_fix_effects_", glm_tabindex()),
                   tags$code(
@@ -307,12 +307,12 @@ observeEvent(input$glm_ok, {
                   condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
                   box(
                     id = paste0("glm_box_model_hyper_", glm_tabindex()),
-                    title = translate("Model Hyperparameters", language = language_selected, glm_modal_words),
+                    title = translate("Model Hyperparameters", language = language_selected, words_one),
                     status = "primary",
                     solidHeader = TRUE,
                     width = 6,
                     dataTableOutput(outputId = paste0("glm_model_hyper_", glm_tabindex())),
-                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, glm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", glm_tabindex()))),
+                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_model_hyper_", glm_tabindex()))),
                     tags$div(
                       class = "collapse", id = paste0("showcode_model_hyper_", glm_tabindex()),
                       tags$code(
@@ -328,12 +328,12 @@ observeEvent(input$glm_ok, {
                 ),
                 box(
                   id = paste0("glm_box_neffp_", glm_tabindex()),
-                  title = translate("Expected Effective Number of Parameters in the Model", language = language_selected, glm_modal_words),
+                  title = translate("Expected Effective Number of Parameters in the Model", language = language_selected, words_one),
                   status = "primary",
                   solidHeader = TRUE,
                   width = 6,
                   dataTableOutput(outputId = paste0("glm_neffp_", glm_tabindex())),
-                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, glm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", glm_tabindex()))),
+                  tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_neffp_", glm_tabindex()))),
                   tags$div(
                     class = "collapse", id = paste0("showcode_neffp_", glm_tabindex()),
                     tags$code(
@@ -350,12 +350,12 @@ observeEvent(input$glm_ok, {
                   condition = "(input.ccompute_input_4 != '' &&  input.ccompute_input_4 == true)",
                   box(
                     id = paste0("glm_box_dic_waic_", glm_tabindex()),
-                    title = translate("DIC and WAIC", language = language_selected, glm_modal_words),
+                    title = translate("DIC and WAIC", language = language_selected, words_one),
                     status = "primary",
                     solidHeader = TRUE,
                     width = 6,
                     dataTableOutput(outputId = paste0("glm_dic_waic_", glm_tabindex())),
-                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, glm_modal_words), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", glm_tabindex()))),
+                    tags$b(tags$a(icon("code"), translate("Show code", language = language_selected, words_one), `data-toggle` = "collapse", href = paste0("#showcode_dic_waic_", glm_tabindex()))),
                     tags$div(
                       class = "collapse", id = paste0("showcode_dic_waic_", glm_tabindex()),
                       tags$code(
