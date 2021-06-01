@@ -28,6 +28,7 @@ source("Modules/sel_hyper.R")
 # source("Modules/sel_formula.R")
 source("Modules/box_modules.R")
 source("Modules/new_chooser.R")
+source("Modules/random_effects_module.R")
 
 
 #Data loaded
@@ -59,6 +60,7 @@ priors_distributions <- names(inla.models()$prior)
 priors_distributions <- priors_distributions[priors_distributions != c("expression:",  "table:")]
 
 lm_family <- c("gaussian", "t")
+RE_lm_family <- c("gaussian", "t")
 glm_family <- names(inla.models()$likelihood)
 
 language_selected <- ifelse(!exists("input$language"), "en", input$language)

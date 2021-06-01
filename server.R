@@ -15,4 +15,6 @@ server <- function(input, output, session) {
   source("modal/glm_modal.R", local = TRUE)
   #Survivor Modal
   source("modal/surv_new_modal.R", local = TRUE)
+  #Random Effect Linear Model
+  source("modal/lm_random_modal.R", local = TRUE)
 }
