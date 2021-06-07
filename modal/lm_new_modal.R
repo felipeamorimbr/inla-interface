@@ -107,7 +107,7 @@ observeEvent(input$lm_tabs,{
   lm_data$hyper_tab <<- ifelse(input$lm_tabs == translate("Hyperparameter Prior", language = language_selected, words_one), TRUE, lm_data$hyper_tab)
 })
 
-lm_tabindex <- reactiveVal(0)
+lm_tabindex <- reactiveVal(1)
 observeEvent(input$lm_ok, {
   lm_formula <- paste0(lm_data$formula$resp_var(), " ~ ", paste0(lm_data$formula$cov_var(), collapse = " + "), ifelse(lm_data$formula$intercept(), " + 1", " - 1"))
   lm_inla <- list()
@@ -152,7 +152,7 @@ observeEvent(input$lm_ok, {
 
     # Close the modal with lm options
     removeModal()
-    lm_tabindex(lm_tabindex() + 1)
+    
     # Create the new call to the model
     lm_inla_call_print[[lm_output_name]] <- paste0(
       "inla(data = ", "dat",
@@ -174,7 +174,7 @@ observeEvent(input$lm_ok, {
     appendTab(
       inputId = "mytabs", select = TRUE,
       tabPanel(
-        title = paste0(translate("Model", language = language_selected, words_one), lm_tabindex()),
+        title = paste0(translate("Linear Model", language = language_selected, words_one), " ",lm_tabindex()),
         useShinydashboard(),
         useShinyjs(),
         fluidRow(
@@ -477,5 +477,7 @@ observeEvent(input$lm_ok, {
         paging = FALSE
       )
     )
+    
+    lm_tabindex(lm_tabindex() + 1)
   }
 })
