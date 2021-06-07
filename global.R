@@ -57,7 +57,8 @@ control_compute_input[[11]] <- inla.getOption("smtp")
 control_inla_input <- inla.set.control.inla.default()
 
 priors_distributions <- names(inla.models()$prior)
-priors_distributions <- priors_distributions[priors_distributions != c("expression:",  "table:")]
+remove_priors <- c(which(priors_distributions == "table:"), which(priors_distributions == "expression:"))
+priors_distributions <- priors_distributions[-remove_priors]
 
 lm_family <- c("gaussian", "t")
 RE_lm_family <- c("gaussian", "t")
