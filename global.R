@@ -63,6 +63,7 @@ priors_distributions <- priors_distributions[-remove_priors]
 lm_family <- c("gaussian", "t")
 RE_lm_family <- c("gaussian", "t")
 glm_family <- names(inla.models()$likelihood)
+surv_family <- str_subset(string = names(inla.models()$likelihood), pattern = c("surv"))
 
 language_selected <- ifelse(!exists("input$language"), "en", input$language)
 words_one <- NULL

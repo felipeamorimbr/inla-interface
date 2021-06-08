@@ -1,3 +1,4 @@
+source("Modules/surv/new_chooser_surv.R")
 # Modal for Survival Model
 observeEvent(data_input(), {
   surv_data <<- list()
@@ -12,6 +13,9 @@ observeEvent(data_input(), {
   )
   surv_data$fixed_priors <<- inla.set.control.fixed.default()
   surv_data$hyper <<- inla.set.control.family.default()
+  
+  surv_data$fixed_priors_tab <<- FALSE
+  surv_data$hyper_tab <<- FALSE
 })
 
 observeEvent(c(input$survival_action_btn_2, input$surv_box), {
@@ -97,6 +101,11 @@ observeEvent(input$surv_tabs,{
                                 sel_family = surv_data$formula$family())
 })
 
+observeEvent(input$surv_tabs,{
+  surv_data$fixed_priors_tab <<- ifelse(input$surv_tabs == translate("Fixed Effects", language = language_selected, words_one), TRUE, surv_data$fixed_priors_tab )
+  surv_data$hyper_tab <<- ifelse(input$surv_tabs == translate("Hyperparameter Prior", language = language_selected, words_one), TRUE, surv_data$hyper_tab)
+})
+
 # surv_fixed_priors_data <- fixed_effects_priors(
 #   id = "surv_fixed",
 #   cov_var = surv_formula_data$cov_var(),
@@ -126,13 +135,14 @@ observeEvent(input$surv_tabs,{
 #   removeModal()
 # })
 
-surv_tabindex <- reactiveVal(0)
+surv_tabindex <- reactiveVal(1)
 observeEvent(input$surv_ok, {
 #Formula surv
+  
   time <- surv_data$formula$resp_var()
   status <- surv_data$formula$status_var()
   variaveis <- surv_data$formula$cov_var()
-  sinla.surv <<- inla.surv(data_input()$data[[time]], data_input()$data[[status]])
+  sinla.surv <<- inla.surv(data_input()$data[[surv_data$formula$resp_var()]], data_input()$data[[surv_data$formula$status_var()]])
 if (length(variaveis) > 0)
     {
       if (surv_data$formula$intercept()) surv_formula <- paste("sinla.surv ~ 1+",  ((paste(variaveis, collapse = "+"))), sep = "")
@@ -143,19 +153,31 @@ if (length(variaveis) > 0)
   surv_inla_call_print <- list()
   surv_tabindex(surv_tabindex() + 1)
   surv_output_name <- paste("output_tab", surv_tabindex(), sep = "_")
+  if(surv_data$fixed_priors_tab == FALSE){
+    surv_control_fixed <- inla.set.control.fixed.default()
+  }else{
+    surv_control_fixed <- control_fixed_input(
+      prioris = surv_data$fixed_priors(),
+      v.names = surv_data$formula$cov_var(),
+      intercept = surv_data$formula$intercept()
+    )
+  }
+  if(surv_data$hyper_tab == FALSE){
+    surv_control_family <- inla.set.control.family.default()
+  }else{
+    surv_control_family <- lm_data$hyper$control_family_input()
+  }
+  
+  
   
   surv_inla[[surv_output_name]] <- try(inla(
     formula = as.formula(surv_formula),
     data = hot_to_r(input$data),
     family = surv_data$formula$family(),
-    control.fixed = control_fixed_input(
-      prioris = surv_data$fixed_priors(), 
-      v.names = surv_data$formula$cov_var(),
-      intercept = surv_data$formula$intercept()
-    ),
+    control.fixed = surv_control_fixed,
     control.compute = control_compute_input,
     control.inla = control_inla_input,
-    control.family = surv_data$hyper$control_family_input() #surv_control_hyper$control_family_input()
+    control.family = surv_control_family #surv_control_hyper$control_family_input()
   ), silent = TRUE)
   if (class(surv_inla[[surv_output_name]]) == "try-error") {
     sendSweetAlert(
@@ -176,23 +198,20 @@ if (length(variaveis) > 0)
     # Create the new call to the model
     surv_inla_call_print[[surv_output_name]] <- paste0(
       "inla(data = ", "dat",
-      ', formula =  "sinla.surv ~ ', 
-      ifelse(surv_data$formula$intercept(), ifelse(is.null(surv_data$formula$cov_var()), "+1", ""), "-1 + "), paste0(surv_data$formula$cov_var(), collapse = " + "), '"',
+      ", formula = ", '"', surv_data$formula$resp_var(),
+      " ~ ", ifelse(surv_data$formula$intercept(), ifelse(is.null(surv_data$formula$cov_var()), "+1", ""), "-1 + "), paste0(surv_data$formula$cov_var(), collapse = " + "), '"',
       paste0(", family = ", '"', surv_data$formula$family(), '"'),
-      paste0(
+      ifelse(surv_data$fixed_priors_tab == FALSE, "", paste0(
         ", control.fixed = ",
-        list_call(control_fixed_input(
-          prioris = surv_data$fixed_priors(), 
-          v.names = surv_data$formula$cov_var(),
-          intercept = surv_data$formula$intercept()
-        ))
-      ),
+        list_call(surv_control_fixed)
+      )),
       ifelse(identical(paste0(input$ok_btn_options_modal), character(0)), "",
-        paste0(", control.compute = ", list_call(control_compute_input), ", control.inla = ", list_call(control_inla_input))
+             paste0(", control.compute = ", list_call(control_compute_input), ", control.inla = ", list_call(control_inla_input))
       ),
-      paste0(", control.family = ", list_call(surv_data$hyper$control_family_input())),
+      ifelse(surv_data$hyper_tab == FALSE, "", paste0(", control.family = ", list_call(surv_control_family))),
       ")"
     )
+    
     # UI of the result tab
     appendTab(
       inputId = "mytabs", select = TRUE,
@@ -500,5 +519,7 @@ if (length(variaveis) > 0)
         paging = FALSE
       )
     )
+    
+    surv_tabindex(surv_tabindex() + 1)
   }
 })
