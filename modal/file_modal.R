@@ -156,7 +156,8 @@ make_dt <- reactive({
     options = list(
       searching = FALSE,
       pageLength = 5,
-      lengthMenu = c(5, 10)
+      lengthMenu = c(5, 10),
+      scrollX = TRUE
     )
   )
 
@@ -177,10 +178,10 @@ data_input <- eventReactive(c(
   input$file,
   input$csv_header, input$csv_quote, input$csv_dec
 ), {
-  if (!(file_ext(input$file$datapath) %in% accetable_formats)) {
+  if (!(tools::file_ext(input$file$datapath) %in% accetable_formats)) {
     return(NULL)
   } else {
-    indata <- switch(file_ext(input$file$datapath),
+    indata <- switch(tools::file_ext(input$file$datapath),
                      "txt" = read.table(input$file$datapath,
                                         header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
                                         sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
