@@ -19,20 +19,20 @@ sel_hyper_ui <- function(id, linkLabel = NULL){
   )
 }
 
-sel_hyper <- function(id, Link, sel_family, linkLabel = NULL){
+sel_hyper <- function(id, Link, formula_data, linkLabel = NULL){
   moduleServer(
     id,
     function(input, output, session){
       
       family_react <- reactive({
-        validate(need(sel_family, FALSE))
-        sel_family
+        validate(need(formula_data$family(), FALSE))
+        formula_data$family()
       })
       
       observeEvent(family_react(), { #Update link function available when family changes
         updateSelectInput(session, 
                           inputId = "sel_link",
-                          choices = link_avaliable(sel_family))
+                          choices = link_avaliable(formula_data$family()))
       })
       
       if(Link == TRUE){

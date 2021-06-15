@@ -87,6 +87,9 @@ random_effect <- function(id, covariates, model_choices) {
         })
       })
       
+      #update covariate choices
+      
+      
       RE_return <- reactive({
         RE_n <- input$add_random_effect + 1
         aux <- matrix(NA_character_, nrow = RE_n, ncol = 2)
@@ -110,29 +113,29 @@ random_effect <- function(id, covariates, model_choices) {
 
 # Testing the Module inside a Modal
 
-# ui <- fluidPage(
-#   actionButton(inputId = "open_modal", "Open Modal")
-# )
-# 
-# server <- function(input, output, session) {
-#   observeEvent(input$open_modal, {
-#     showModal(
-#       modalDialog(
-#         title = "Testing Random Effects Module",
-#         footer = tagList(actionButton(inputId = "browser_stop", "Ok"), modalButton(label = "Cancel")),
-#         size = "l",
-#         easyClose = FALSE,
-#         fade = FALSE,
-#         random_effect_ui(id = "test", covariates = c("X1", "X2", "X3", "X4"), model_choices = c("iid", "rm"))
-#       )
-#     )
-#   })
-# 
-#   observeEvent(input$browser_stop, {
-#     browser()
-#   })
-# 
-#   result_test <- random_effect(id = "test", covariates = c("X1", "X2", "X3", "X4"), model_choices = c("iid", "rm"))
-# }
-# 
-# shinyApp(ui, server)
+ui <- fluidPage(
+  actionButton(inputId = "open_modal", "Open Modal")
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$open_modal, {
+    showModal(
+      modalDialog(
+        title = "Testing Random Effects Module",
+        footer = tagList(actionButton(inputId = "browser_stop", "Ok"), modalButton(label = "Cancel")),
+        size = "l",
+        easyClose = FALSE,
+        fade = FALSE,
+        random_effect_ui(id = "test", covariates = c("X1", "X2", "X3", "X4"), model_choices = c("iid", "rm"))
+      )
+    )
+  })
+
+  observeEvent(input$browser_stop, {
+    browser()
+  })
+
+  result_test <- random_effect(id = "test", covariates = c("X1", "X2", "X3", "X4"), model_choices = c("iid", "rm"))
+}
+
+shinyApp(ui, server)

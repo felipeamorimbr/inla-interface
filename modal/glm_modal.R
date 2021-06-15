@@ -49,8 +49,14 @@ observeEvent(c(input$glm_action_btn, input$glm_box_btn), {
 
   glm_data$fixed_priors <<- fixed_effects_priors(
     id = "glm_fixed",
-    cov_var = glm_data$formula$cov_var(),
-    intercept = glm_data$formula$intercept()
+    formula_data = glm_data$formula
+  )
+  
+  glm_data$hyper <<- sel_hyper(
+    id = "glm_hyper",
+    Link = TRUE,
+    formula_data = glm_data$formula,
+    linkLabel = translate("Select the Link Function", language = language_selected, words_one)
   )
 
   showModal(modalDialog(fluidPage(
@@ -100,20 +106,20 @@ observeEvent(c(input$glm_action_btn, input$glm_box_btn), {
   ))
 })
 
-observeEvent(input$glm_tabs, {
-  glm_data$fixed_priors <<- fixed_effects_priors(
-    id = "glm_fixed",
-    cov_var = glm_data$formula$cov_var(),
-    intercept = glm_data$formula$intercept()
-  )
-
-  glm_data$hyper <<- sel_hyper(
-    id = "glm_hyper",
-    Link = TRUE,
-    sel_family = glm_data$formula$family(),
-    linkLabel = translate("Select the Link Function", language = language_selected, words_one)
-  )
-})
+# observeEvent(input$glm_tabs, {
+#   glm_data$fixed_priors <<- fixed_effects_priors(
+#     id = "glm_fixed",
+#     cov_var = glm_data$formula$cov_var(),
+#     intercept = glm_data$formula$intercept()
+#   )
+# 
+#   glm_data$hyper <<- sel_hyper(
+#     id = "glm_hyper",
+#     Link = TRUE,
+#     sel_family = glm_data$formula$family(),
+#     linkLabel = translate("Select the Link Function", language = language_selected, words_one)
+#   )
+# })
 
 observeEvent(input$glm_tabs, {
   glm_data$fixed_priors_tab <<- ifelse(input$glm_tabs == translate("Fixed Effects", language = language_selected, words_one), TRUE, glm_data$fixed_priors_tab)

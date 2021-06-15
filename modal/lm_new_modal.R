@@ -9,7 +9,7 @@ observeEvent(data_input(), {
     intercept = reactive({TRUE}),
     family = reactive({"Gaussian"})
   )
-  lm_data$fixed_priors <<- inla.set.control.fixed.default()
+  lm_data$fixed_priors <<- reactive({NULL})
   lm_data$hyper <<- inla.set.control.family.default()
   
   lm_data$fixed_priors_tab <<- FALSE
@@ -30,8 +30,14 @@ observeEvent(c(input$linear_action_btn_2, input$lm_box), {
 
   lm_data$fixed_priors <<- fixed_effects_priors(
     id = "lm_fixed",
-    cov_var = lm_data$formula$cov_var(),
-    intercept = lm_data$formula$intercept()
+    formula_data = lm_data$formula
+  )
+  
+  lm_data$hyper <<- sel_hyper(
+    id = "lm_hyper",
+    Link = FALSE,
+    formula_data = lm_data$formula,
+    linkLabel = NULL
   )
   showModal(modalDialog(fluidPage(
     includeCSS(path = "modal/style_lm.css"),
@@ -89,18 +95,27 @@ model_boxes$lm <- actionButton(
   style = "all:unset; color:black; cursor:pointer; outline:none;"
 )
 
-observeEvent(input$lm_tabs, {
-  lm_data$fixed_priors <<- fixed_effects_priors(
-    id = "lm_fixed",
-    cov_var = lm_data$formula$cov_var(),
-    intercept = lm_data$formula$intercept()
-  )
-  
-  lm_data$hyper <<- sel_hyper(id = "lm_hyper",
-                              Link = FALSE,
-                              sel_family = lm_data$formula$family(),
-                              linkLabel = NULL)
-})
+# observeEvent(input$lm_tabs, {
+#   lm_data$fixed_priors <<- fixed_effects_priors(
+#     id = "lm_fixed",
+#     cov_var = lm_data$formula$cov_var(),
+#     intercept = lm_data$formula$intercept()
+#   )
+# 
+#   lm_data$hyper <<- sel_hyper(id = "lm_hyper",
+#                               Link = FALSE,
+#                               sel_family = lm_data$formula$family(),
+#                               linkLabel = NULL)
+# })
+
+# observeEvent(lm_data$formula$cov_var, {
+#   browser()
+#     lm_data$fixed_priors <<- fixed_effects_priors(
+#       id = "lm_fixed",
+#       cov_var = lm_data$formula$cov_var(),
+#       intercept = lm_data$formula$intercept()
+#     )
+# })
 
 observeEvent(input$lm_tabs,{
   lm_data$fixed_priors_tab <<- ifelse(input$lm_tabs == translate("Fixed Effects", language = language_selected, words_one), TRUE, lm_data$fixed_priors_tab )
@@ -109,6 +124,7 @@ observeEvent(input$lm_tabs,{
 
 lm_tabindex <- reactiveVal(1)
 observeEvent(input$lm_ok, {
+  browser()
   lm_formula <- paste0(lm_data$formula$resp_var(), " ~ ", paste0(lm_data$formula$cov_var(), collapse = " + "), ifelse(lm_data$formula$intercept(), " + 1", " - 1"))
   lm_inla <- list()
   lm_inla_call_print <- list()

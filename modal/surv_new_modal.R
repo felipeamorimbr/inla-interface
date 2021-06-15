@@ -29,11 +29,19 @@ observeEvent(c(input$survival_action_btn_2, input$surv_box), {
     rightLabel = translate("Covariates Selected", language = language_selected, words_one),
     leftLabel = translate("Covariates", language = language_selected, words_one)
   )
+  
   surv_data$fixed_priors <<- fixed_effects_priors(
     id = "surv_fixed",
-    cov_var = surv_data$formula$cov_var(),
-    intercept = surv_data$formula$intercept()
+    formula_data = surv_data$formula
   )
+  
+  surv_data$hyper <<- sel_hyper(
+    id = "surv_hyper",
+    Link = TRUE,
+    formula_data = surv_data$formula,
+    linkLabel = translate("Select the Link Function", language = language_selected, words_one)
+  )
+  
   showModal(modalDialog(fluidPage(
     includeCSS(path = "modal/style_lm.css"),
     shinyjs::useShinyjs(),
@@ -61,7 +69,7 @@ observeEvent(c(input$survival_action_btn_2, input$surv_box), {
       tabPanel(
         title = translate("Hyperparameter Prior", language = language_selected, words_one),
         sel_hyper_ui(
-          id = "surv_family",
+          id = "surv_hyper",
           linkLabel = NULL
         )
       )
@@ -89,17 +97,17 @@ model_boxes$surv <- actionButton(
   box_model_ui(id = "surv_box", name = translate("Survival Model", language = language_selected, words_one), author = "Adriana Lana", icon = "fa-chart-area", color = "#12a19b"),
   style = "all:unset; color:black; cursor:pointer; outline:none;"
 )
-observeEvent(input$surv_tabs,{
-  surv_data$fixed_priors <<- fixed_effects_priors(
-    id = "surv_fixed",
-    cov_var = surv_data$formula$cov_var(),
-    intercept = surv_data$formula$intercept()
-  )
-  
-  surv_data$hyper <<- sel_hyper(id = "surv_family",
-                                Link = TRUE,
-                                sel_family = surv_data$formula$family())
-})
+# observeEvent(input$surv_tabs,{
+#   surv_data$fixed_priors <<- fixed_effects_priors(
+#     id = "surv_fixed",
+#     cov_var = surv_data$formula$cov_var(),
+#     intercept = surv_data$formula$intercept()
+#   )
+#   
+#   surv_data$hyper <<- sel_hyper(id = "surv_family",
+#                                 Link = TRUE,
+#                                 sel_family = surv_data$formula$family())
+# })
 
 observeEvent(input$surv_tabs,{
   surv_data$fixed_priors_tab <<- ifelse(input$surv_tabs == translate("Fixed Effects", language = language_selected, words_one), TRUE, surv_data$fixed_priors_tab )
@@ -151,7 +159,6 @@ if (length(variaveis) > 0)
     else (surv_formula <- sinla.surv ~ 1)
   surv_inla <- list()
   surv_inla_call_print <- list()
-  surv_tabindex(surv_tabindex() + 1)
   surv_output_name <- paste("output_tab", surv_tabindex(), sep = "_")
   if(surv_data$fixed_priors_tab == FALSE){
     surv_control_fixed <- inla.set.control.fixed.default()
@@ -165,7 +172,7 @@ if (length(variaveis) > 0)
   if(surv_data$hyper_tab == FALSE){
     surv_control_family <- inla.set.control.family.default()
   }else{
-    surv_control_family <- lm_data$hyper$control_family_input()
+    surv_control_family <- surv_data$hyper$control_family_input()
   }
   
   
