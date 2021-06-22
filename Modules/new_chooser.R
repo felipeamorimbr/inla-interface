@@ -254,12 +254,12 @@ new_chooser <- function(id, resp_var, selected_left, selected_right, leftLabel, 
 # ui <- fluidPage(
 #   actionButton("Open_modal", "Open")
 # )
-#
+# 
 # server <- function(input, output, session) {
 #   vals <- list(variables = list(resp_var = "X1", left = c("X1", "X2", "X3"), right = NULL))
-#
+# 
 #   observeEvent(input$Open_modal, {
-#
+# 
 #     vals <<- new_chooser(
 #       id = "Test",
 #       resp_var = vals$variables$resp_var,
@@ -268,7 +268,7 @@ new_chooser <- function(id, resp_var, selected_left, selected_right, leftLabel, 
 #       leftLabel = "Covariaveis",
 #       rightLabel = "Covariaveis selecionadas"
 #     )
-#
+# 
 #     showModal(
 #       modalDialog(
 #         footer = actionButton("close", "Close"),
@@ -284,14 +284,14 @@ new_chooser <- function(id, resp_var, selected_left, selected_right, leftLabel, 
 #         actionButton("browser", "ok")
 #       ))
 #   })
-#
+# 
 #   observeEvent(input$close, {
 #     removeModal()
 #   })
-#
+# 
 #   observeEvent(input$browser, {
 #     browser()
 #   })
 # }
-#
+# 
 # shinyApp(ui, server)

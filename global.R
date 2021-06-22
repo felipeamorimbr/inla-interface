@@ -62,6 +62,8 @@ priors_distributions <- names(inla.models()$prior)
 remove_priors <- c(which(priors_distributions == "table:"), which(priors_distributions == "expression:"))
 priors_distributions <- priors_distributions[-remove_priors]
 
+latent_effects <- names(inla.models()$latent)
+
 lm_family <- c("gaussian", "t")
 RE_lm_family <- c("gaussian", "t")
 glm_family <- names(inla.models()$likelihood)

@@ -124,7 +124,6 @@ observeEvent(input$lm_tabs,{
 
 lm_tabindex <- reactiveVal(1)
 observeEvent(input$lm_ok, {
-  browser()
   lm_formula <- paste0(lm_data$formula$resp_var(), " ~ ", paste0(lm_data$formula$cov_var(), collapse = " + "), ifelse(lm_data$formula$intercept(), " + 1", " - 1"))
   lm_inla <- list()
   lm_inla_call_print <- list()
