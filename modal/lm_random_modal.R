@@ -145,6 +145,19 @@ RE_lm_tabindex <- reactiveVal(1)
 
 observeEvent(input$RE_lm_ok, {
   useSweetAlert()
+  
+  if (RE_lm_data$RE_tab == FALSE) {
+    sendSweetAlert(
+      session = session,
+      title = translate("ERROR", language = language_selected, words_one),
+      type = "error",
+      text = translate("Random Effect not selected", language = language_selected, words_one),
+      closeOnClickOutside = FALSE,
+      showCloseButton = TRUE
+    )
+    return()
+  }
+  
   covariates_aux <- c(RE_lm_data$formula$cov_var(), RE_lm_data$random_formula()$cov)
   condition_aux <- !identical(sort(covariates_aux), sort(unique(covariates_aux)))
   if (condition_aux) {
@@ -158,19 +171,7 @@ observeEvent(input$RE_lm_ok, {
     )
     return()
   }
-
-  if (RE_lm_data$RE_tab == FALSE) {
-    sendSweetAlert(
-      session = session,
-      title = translate("ERROR", language = language_selected, words_one),
-      type = "error",
-      text = translate("Random Effect not selected", language = language_selected, words_one),
-      closeOnClickOutside = FALSE,
-      showCloseButton = TRUE
-    )
-    return()
-  }
-  browser()
+  
   RE_lm_formula <- paste0(
     RE_lm_data$formula$resp_var(), " ~ ",
     paste0(RE_lm_data$formula$cov_var(), collapse = " + "), " + ",
