@@ -223,7 +223,8 @@ observeEvent(input$RE_lm_ok, {
     RE_lm_inla_call_print[[RE_lm_output_name]] <- paste0(
       "inla(data = ", "dat",
       ", formula = ", '"', RE_lm_data$formula$resp_var(),
-      " ~ ", ifelse(RE_lm_data$formula$intercept(), ifelse(is.null(RE_lm_data$formula$cov_var()), "+1", ""), "-1 + "), paste0(RE_lm_data$formula$cov_var(), collapse = " + "), '"',
+      " ~ ", ifelse(RE_lm_data$formula$intercept(), ifelse(is.null(RE_lm_data$formula$cov_var()), "+1", ""), "-1 + "), paste0(paste0(RE_lm_data$formula$cov_var(), collapse = " + "), " + ",
+                                                                                                                              paste0(" f(", RE_lm_data$random_formula()$cov, ", model = '", RE_lm_data$random_formula()$model, "') ", collapse = "+")), '"',
       paste0(", family = ", '"', RE_lm_data$formula$family(), '"'),
       ifelse(RE_lm_data$fixed_priors_tab == FALSE, "", paste0(
         ", control.fixed = ",
