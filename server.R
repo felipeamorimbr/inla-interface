@@ -17,4 +17,6 @@ server <- function(input, output, session) {
   source("modal/surv_new_modal.R", local = TRUE)
   #Random Effect Linear Model
   source("modal/lm_random_modal.R", local = TRUE)
+  #Spatial modal
+  source("modal/spatial_modal.R", local = TRUE)
 }

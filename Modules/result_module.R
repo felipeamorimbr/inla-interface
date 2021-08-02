@@ -20,9 +20,9 @@ results_UI <- function(id, moduleID, INLAresult, control_compute, control_inla, 
               class = "language-r",
               paste0("dat <- ", '"', data_input()$infile.path, '"'),
               tags$br(),
-              paste0("model_inla_", tabindex()), " <- ", inla_call_print,
+              paste0("model_inla_", tab_index()), " <- ", inla_call_print,
               tags$br(),
-              paste0("model_inla_", tabindex(), "$call")
+              paste0("model_inla_", tab_index(), "$call")
             )
           ),
           footer = downloadBttn(
@@ -50,9 +50,9 @@ results_UI <- function(id, moduleID, INLAresult, control_compute, control_inla, 
               class = "language-r",
               paste0("dat <- ", '"', data_input()$infile.path, '"'),
               tags$br(),
-              paste0("model_inla_", tabindex()), " <- ", inla_call_print,
+              paste0("model_inla_", tab_index()), " <- ", inla_call_print,
               tags$br(),
-              paste0("model_inla_", tabindex(), "$cpu.sued")
+              paste0("model_inla_", tab_index(), "$cpu.sued")
             )
           )
         ),
@@ -107,9 +107,9 @@ results_UI <- function(id, moduleID, INLAresult, control_compute, control_inla, 
               class = "language-r",
               paste0("dat <- ", '"', data_input()$infile.path, '"'),
               tags$br(),
-              paste0("model_inla_", tabindex()), " <- ", inla_call_print,
+              paste0("model_inla_", tab_index()), " <- ", inla_call_print,
               tags$br(),
-              paste0("model_inla_", tabindex(), "$summary.fixed")
+              paste0("model_inla_", tab_index(), "$summary.fixed")
             )
           ),
           footer = downloadBttn(
@@ -140,9 +140,9 @@ results_UI <- function(id, moduleID, INLAresult, control_compute, control_inla, 
                   class = "language-r",
                   paste0("dat <- ", '"', data_input()$infile.path, '"'),
                   tags$br(),
-                  paste0("model_inla_", tabindex()), " <- ", inla_call_print,
+                  paste0("model_inla_", tab_index()), " <- ", inla_call_print,
                   tags$br(),
-                  paste0("model_inla_", tabindex(), "$summary.hyperpar")
+                  paste0("model_inla_", tab_index(), "$summary.hyperpar")
                 )
               )
             )
@@ -161,9 +161,9 @@ results_UI <- function(id, moduleID, INLAresult, control_compute, control_inla, 
                 class = "language-r",
                 paste0("dat <- ", '"', data_input()$infile.path, '"'),
                 tags$br(),
-                paste0("model_inla_", tabindex()), " <- ", inla_call_print,
+                paste0("model_inla_", tab_index()), " <- ", inla_call_print,
                 tags$br(),
-                paste0("model_inla_", tabindex(), "$neffp")
+                paste0("model_inla_", tab_index(), "$neffp")
               )
             )
           ),
@@ -183,13 +183,13 @@ results_UI <- function(id, moduleID, INLAresult, control_compute, control_inla, 
                   class = "language-r",
                   paste0("dat <- ", '"', data_input()$infile.path, '"'),
                   tags$br(),
-                  paste0("model_inla_", tabindex()), " <- ", inla_call_print,
+                  paste0("model_inla_", tab_index()), " <- ", inla_call_print,
                   tags$br(),
-                  paste0("model_inla_", tabindex(), "$dic$dic"),
+                  paste0("model_inla_", tab_index(), "$dic$dic"),
                   tags$br(),
-                  paste0("model_inla_", tabindex(), "$dic$dic.sat"),
+                  paste0("model_inla_", tab_index(), "$dic$dic.sat"),
                   tags$br(),
-                  paste0("model_inla_", tabindex(), "$dic$p.eff")
+                  paste0("model_inla_", tab_index(), "$dic$p.eff")
                 )
               )
             )
@@ -204,6 +204,7 @@ results_server <- function(id, moduleID, INLAresult, control_compute, control_in
   moduleServer(
     id,
     function(input, output, session){
+     
       output$model_call <- renderText({
         inla_call_print
       })
@@ -211,11 +212,11 @@ results_server <- function(id, moduleID, INLAresult, control_compute, control_in
       # Download Script
       output$download_script <- downloadHandler(
         filename = function() {
-          paste0("model_", tabindex(), "_script", ".r")
+          paste0("model_", tab_index(), "_script", ".r")
         },
         content = function(file) {
           write(paste(paste0("dat <- read.csv2(", data_input()$infile.path, ")"),
-                      paste0("inla_model_", tabindex(), "<-", inla_call_print),
+                      paste0("inla_model_", tab_index(), "<-", inla_call_print),
                       sep = "\n"
           ), file)
         }
@@ -252,7 +253,7 @@ results_server <- function(id, moduleID, INLAresult, control_compute, control_in
       # Download Summary
       output$model_download_summary <- downloadHandler(
         filename = function() {
-          paste0("model_", tabindex(), "summary.csv")
+          paste0("model_", tab_index(), "summary.csv")
         },
         content = function(file) {
           write.csv2(as.data.frame(INLAresult$summary.fixed), file = file)

@@ -17,8 +17,13 @@ file_modal <- modalDialog(
     fluidRow(
       column(
         width = 4,
-        fileInput("file", label = h4(translate("Select the file", language = language_selected, words_one))),
-        shinyjs::hidden(actionLink(inputId = "file_adv_options_btn", label = translate("Advanced options", language = language_selected, words_one))),
+        tags$h4(translate("Select the file", language = language_selected, words_one)),
+        shinyFilesButton(id = "file", label = translate("Select File", language = language_selected, words_one),
+                         multiple = FALSE,
+                         title = translate("Select the file", language = language_selected, words_one)),
+        tags$br(),
+        shinyjs::hidden(actionLink(inputId = "file_adv_options_btn", 
+                                   label = translate("Advanced options", language = language_selected, words_one))),
         textOutput(outputId = "file_error_extension_txt"),
         shinyjs::hidden(uiOutput("file_adv_options_ui")),
         selectInput(inputId = "language",
@@ -87,28 +92,36 @@ observeEvent(input$file_action_btn, {
   })
   
 })
+shinyFileChoose(input, id = "file", roots = volumes, session = session, filetypes = accetable_formats)
+inFile <- eventReactive(input$file, {
+  p <- parseFilePaths(roots = volumes, input$file)
+  if(nrow(p) == 0)
+    return(NULL)
+  return(p)
+})
 
-
-
-observeEvent(input$file, {
-  if (!is.null(input$file) && (file_ext(input$file$datapath) %in% accetable_formats)) {
+observeEvent(inFile(), {
+  if (!is.null(input$file) && (file_ext(inFile()$datapath) %in% accetable_formats)) {
     shinyjs::enable("file_load_btn")
     shinyjs::hide("file_adv_options_btn")
   }
-  if(file_ext(input$file$datapath) %in% accetable_formats_options){
+  if(file_ext(inFile()$datapath) %in% accetable_formats_options){
     shinyjs::show("file_adv_options_btn")
   }
-  if (!(file_ext(input$file$datapath) %in% accetable_formats)) {
+  if (!(file_ext(inFile()$datapath) %in% accetable_formats)) {
     output$file_error_extension_txt <- renderText(translate("Invalid extension file", language = language_selected, words_one))
+  }
+  if(file_ext(inFile()$datapath) == "shp"){
+    shinyjs::show("shape_files")
   }
 })
 
 ## -- Modal File Options
-observeEvent(input$file, {
-  if(!file_ext(input$file$datapath) %in% accetable_formats_options)
+observeEvent(inFile(), {
+  if(!file_ext(inFile()$datapath) %in% accetable_formats_options)
     return(NULL)
   output$file_adv_options_ui <- renderUI({
-    switch(file_ext(input$file$datapath),
+    switch(file_ext(inFile()$datapath),
       "txt" = ,
       "csv" = fluidPage(
         fluidRow(
@@ -143,7 +156,6 @@ observeEvent(input$file, {
           )
         )
       ),
-      
     )
   })
 })
@@ -175,50 +187,71 @@ observeEvent(input$file_adv_options_btn, {
 
 ## -- Data ----
 data_input <- eventReactive(c(
-  input$file,
-  input$csv_header, input$csv_quote, input$csv_dec
+  inFile(),
+  input$csv_header, input$csv_quote, input$csv_dec, input$shape_files
 ), {
-  if (!(tools::file_ext(input$file$datapath) %in% accetable_formats)) {
-    return(NULL)
-  } else {
-    indata <- switch(tools::file_ext(input$file$datapath),
-                     "txt" = read.table(input$file$datapath,
-                                        header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
-                                        sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
-                                        quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
-                                        dec = ifelse(is.null(input$csv_dec), ",", input$csv_dec)
-                     ),
-                     "csv" = read.table(input$file$datapath,
-                                        header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
-                                        sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
-                                        quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
-                                        dec = ifelse(is.null(input$csv_dec), ",", input$csv_dec)
-                     ),
-                     "dta" = read_dta(file = input$file$datapath),
-                     "sas7bdat" = read_sas(data_file = input$file$datapath),
-                     "sas7bcat" = read_sas(data_file = input$file$datapath),
-                     "zsav" = read_sav(file = input$file$datapath),
-                     "xpt" = read_xpt(file = input$file$datapath)
-                     
-    )
-    names.variables <- names(model.matrix(formula(indata), data = indata)[1, ])
-    covariates <- names(indata)
-    names.variables <- c(names.variables[1], covariates[1], names.variables[-1])
-    n.variables <- length(names.variables)
-    n.obs <- nrow(indata)
-    name.file <- input$file$name
-    
-    list(
-      data = indata, # The data from data file
-      n.variables = n.variables,
-      n.obs = n.obs,
-      infile.path = input$file$datapath,
-      names.variables = names.variables,
-      name.file = name.file,
-      covariates = covariates
-    )
-  }
-})
+        indata <- switch(tools::file_ext(inFile()$datapath),
+                       "txt" = read.table(inFile()$datapath,
+                                          header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
+                                          sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
+                                          quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
+                                          dec = ifelse(is.null(input$csv_dec), ",", input$csv_dec)
+                       ),
+                       "csv" = read.table(inFile()$datapath,
+                                          header = ifelse(is.null(input$csv_header), TRUE, input$csv_header),
+                                          sep = ifelse(is.null(input$csv_sep), ";", input$csv_sep),
+                                          quote = ifelse(is.null(input$csv_quote), "\"", input$csv_quote),
+                                          dec = ifelse(is.null(input$csv_dec), ",", input$csv_dec)
+                       ),
+                       "dta" = read_dta(file = inFile()$datapath),
+                       "sas7bdat" = read_sas(data_file = inFile()$datapath),
+                       "sas7bcat" = read_sas(data_file = inFile()$datapath),
+                       "zsav" = read_sav(file = inFile()$datapath),
+                       "xpt" = read_xpt(file = inFile()$datapath),
+                       "shp" = readOGR(inFile()$datapath)
+      )
+      if(tools::file_ext(inFile()$datapath) == "shp"){
+        
+        names.variables <- names(model.matrix(formula(indata@data), data = indata@data)[1, ])
+        covariates <- names(indata@data)
+        names.variables <- c(names.variables[1], covariates[1], names.variables[-1])
+        n.variables <- length(names.variables)
+        n.obs <- nrow(indata@data)
+        name.file <- inFile()$name
+        inFile_temp <- poly2nb(indata)
+        nb2INLA("inFile.graph", inFile_temp)
+        inFile_adj <- paste(getwd(),"/inFile.graph",sep="")
+        return(
+          list(
+            data = indata@data, # The data from data file
+            n.variables = n.variables,
+            n.obs = n.obs,
+            infile.path = inFile()$datapath,
+            names.variables = names.variables,
+            name.file = name.file,
+            covariates = covariates,
+            adj = inFile_adj
+          )
+        )
+      }
+      
+      names.variables <- names(model.matrix(formula(indata), data = indata)[1, ])
+      covariates <- names(indata)
+      names.variables <- c(names.variables[1], covariates[1], names.variables[-1])
+      n.variables <- length(names.variables)
+      n.obs <- nrow(indata)
+      name.file <- inFile()$name
+      
+      list(
+        data = indata, # The data from data file
+        n.variables = n.variables,
+        n.obs = n.obs,
+        infile.path = inFile()$datapath,
+        names.variables = names.variables,
+        name.file = name.file,
+        covariates = covariates
+      )
+}, ignoreInit = TRUE)
 
 ## -- Main Panel ----
 ## -- Table with Data ----

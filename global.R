@@ -12,7 +12,9 @@ library(dplyr)
 library(haven)
 library(tools)
 library(stringr)
-
+library(rgdal)
+library(spdep)
+library(shinyFiles)
 
 #Functions Used
 # source("functions/file_ext.R")
@@ -31,6 +33,8 @@ source("Modules/sel_hyper.R")
 source("Modules/box_modules.R")
 source("Modules/new_chooser.R")
 source("Modules/random_effects_module.R")
+source("Modules/result_module.R")
+source("Modules/random_effects_with_fixed_number_module.R")
 
 
 #Data loaded
@@ -49,7 +53,9 @@ accetable_formats <- c("csv", "txt",
                        "dta", #Stata File
                        "sas7bcat","sas7bdat", #SAS files
                        "zsav", #spss files
-                       "xpt") #SAS transport files
+                       "xpt", #SAS transport files
+                       "shp"
+                       ) 
 
 accetable_formats_options <- c("csv", "txt")
 
@@ -67,12 +73,15 @@ latent_effects <- names(inla.models()$latent)
 lm_family <- c("gaussian", "t")
 RE_lm_family <- c("gaussian", "t")
 glm_family <- names(inla.models()$likelihood)
+spatial_RE_family <- names(inla.models()$likelihood)
 surv_family <- str_subset(string = names(inla.models()$likelihood), pattern = c("surv"))
 
 language_selected <- ifelse(!exists("input$language"), "en", input$language)
 words_one <- NULL
 
+spatial_models <- c("rw2d", "matern2d", "besagproper", "besag0", "bym")
 
 avaliable_languages <- avaliable_languages_RData$language
 
 names(avaliable_languages) <- unlist(avaliable_languages_RData$name)
+volumes <- getVolumes()
