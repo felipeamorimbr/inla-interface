@@ -19,4 +19,6 @@ server <- function(input, output, session) {
   source("modal/lm_random_modal.R", local = TRUE)
   #Spatial modal
   source("modal/spatial_modal.R", local = TRUE)
+  #Time series Model
+  source("modal/ts_modal.R", local = TRUE)
 }
