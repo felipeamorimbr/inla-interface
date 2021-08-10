@@ -69,12 +69,14 @@ remove_priors <- c(which(priors_distributions == "table:"), which(priors_distrib
 priors_distributions <- priors_distributions[-remove_priors]
 
 latent_effects <- names(inla.models()$latent)
+ts_latent_effects <- c("rw1", "rw2", "ar1", "ar", "seasonal")
 
 lm_family <- c("gaussian", "t")
 RE_lm_family <- c("gaussian", "t")
 glm_family <- names(inla.models()$likelihood)
 spatial_RE_family <- names(inla.models()$likelihood)
 surv_family <- str_subset(string = names(inla.models()$likelihood), pattern = c("surv"))
+ts_family <- names(inla.models()$likelihood)
 
 language_selected <- ifelse(!exists("input$language"), "en", input$language)
 words_one <- NULL
