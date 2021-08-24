@@ -1,16 +1,4 @@
 # Time Series Modal
-model_buttons$ts <- smAction(id = "ts_action_bttn", label = "Hierarchical Time Series Models")
-model_boxes$ts <- actionButton(
-  inputId = "ts_box_btn",
-  box_model_ui(
-    id = "ts_box",
-    name = "Hierarchical Time Series Models",
-    author = "Italo Ferreira",
-    icon = "fa-chart-area",
-    color = "#12a19b"
-  ),
-  style = "all:unset; color:black; cursor:pointer; outline:none;"
-)
 
 observeEvent(data_input(), {
   ts_data <<- list()
@@ -40,6 +28,19 @@ observeEvent(data_input(), {
   ts_data$hyper_tab <<- FALSE
   ts_data$ts_tab <<- FALSE
 })
+
+model_buttons$ts <- smAction(id = "ts_action_bttn", label = "Hierarchical Time Series Models")
+model_boxes$ts <- actionButton(
+  inputId = "ts_box_btn",
+  box_model_ui(
+    id = "ts_box",
+    name = "Hierarchical Time Series Models",
+    author = "Italo Ferreira",
+    icon = "fa-chart-area",
+    color = "#12a19b"
+  ),
+  style = "all:unset; color:black; cursor:pointer; outline:none;"
+)
 
 
 observeEvent(c(input$ts_action_bttn, input$ts_box_btn), {
@@ -74,6 +75,7 @@ observeEvent(c(input$ts_action_bttn, input$ts_box_btn), {
     random_effect_label = c("Time")
   )
   
+
   showModal(modalDialog(
     fluidPage(
       includeCSS(path = "modal/style_lm.css"),
@@ -106,17 +108,14 @@ observeEvent(c(input$ts_action_bttn, input$ts_box_btn), {
             tabPanel(
               title = translate("Formula", language = language_selected, words_one),
               random_effects_with_fix_ui(id = "ts_random_formula"),
-              actionButton(
-                "confirm_model",
-                translate("Confirm Model", language_selected, words_one)
-              ),
               pickerInput(
                 # Select the order of AR model
                 inputId = "order",
                 label = translate("Order", language = language_selected, dictionary = words_one),
-                choices = 1:20,
+                choices = 1:25,
                 multiple = FALSE
-              )
+              ),
+
             ),
             tabPanel(
               title = translate("Random Effects Priors", language = language_selected, words_one)
@@ -171,23 +170,21 @@ observeEvent(input$ts_tabs, {
 
 ts_tabindex <- reactiveVal(1)
 
-# shinyjs::disable("order")
-# 
-# Observer the change in the model to disable Order
-observeEvent(input$confirm_model, {
-  print(ts_data$random_formula()$model)
-  if (ts_data$random_formula()$model == "ar") {
-    shinyjs::enable("order")
-    print("Ativar")
-  } else{
-    shinyjs::disable("order")
-    print("Desativar")
-  }
-})
-
+ 
 # Quando define os prametros e clica no OK
 observeEvent(input$ts_ok, {
   useSweetAlert()
+
+  if (ts_data$random_formula()$model == "ar" && input$order > 5) {
+    sendSweetAlert(
+      session = session,
+      title = translate("WARNING", language = language_selected, words_one),
+      type = "warning ",
+      text = translate("Some errors may be generated due to the chosen order for the autoregressive model.", language = language_selected, words_one),
+      closeOnClickOutside = FALSE,
+      showCloseButton = TRUE
+    )
+  }
   
   if (ts_data$ts_tab == FALSE) {
     sendSweetAlert(
@@ -237,12 +234,12 @@ observeEvent(input$ts_ok, {
     },
     ")"
   )
-  print(ts_formula)
+  #print(ts_formula)
   
   
   ts_inla <- list()
   ts_inla_call_print <- list()
-  ts_output_name <- paste("output_tab", ts_tabindex(), sep = "_")
+  ts_output_name <- paste("ts_output_tab", ts_tabindex(), sep = "_")
   
   if (ts_data$fixed_priors_tab == FALSE) {
     ts_control_fixed <- inla.set.control.fixed.default()
@@ -315,378 +312,40 @@ observeEvent(input$ts_ok, {
       ),
       ")"
     )
-  }
-  
-  appendTab(
-    inputId = "mytabs",
-    select = TRUE,
-    tabPanel(
-      title = paste0(
-        translate("Hierarchical Time Series Models", language = language_selected, words_one),
-        " ",
-        ts_tabindex()
-      ),
-      useShinydashboard(),
-      useShinyjs(),
-      fluidRow(
-        column(
-          width = 6,
-          box(
-            id = paste0("ts_box_call_", ts_tabindex()),
-            title = translate("Call", language = language_selected, words_one),
-            status = "primary",
-            solidHeader = TRUE,
-            width = 12,
-            textOutput(outputId = paste0("ts_call", ts_tabindex())),
-            tags$b(
-              tags$a(
-                icon("code"),
-                translate("Show code", language = language_selected, words_one),
-                `data-toggle` = "collapse",
-                href = paste0("#showcode_call", ts_tabindex())
-              )
-            ),
-            tags$div(
-              class = "collapse",
-              id = paste0("showcode_call", ts_tabindex()),
-              tags$code(
-                class = "language-r",
-                paste0("dat <- ", '"', input$file$name, '"'),
-                tags$br(),
-                paste0("ts_inla_", ts_tabindex()),
-                " <- ",
-                ts_inla_call_print[[ts_output_name]],
-                tags$br(),
-                paste0("ts_inla_", ts_tabindex(), "$call")
-              )
-            ),
-            footer = downloadBttn(
-              outputId = paste0("download_script_", ts_tabindex()),
-              label = translate("Download Script", language = language_selected, words_one),
-              style = "material-flat",
-              color = "primary",
-              size = "xs"
-            )
-          )
+    # UI of the result tab
+    appendTab(
+      inputId = "mytabs",
+      select = TRUE,
+      tabPanel(
+        title = paste0(
+          translate("Time Series Model", language = language_selected, words_one),
+          " ",
+          ts_tabindex()
         ),
-        column(
-          width = 6,
-          box(
-            id = paste0("ts_box_time_used", ts_tabindex()),
-            title = translate("Time Used", language = language_selected, words_one),
-            status = "primary",
-            solidHeader = TRUE,
-            width = 12,
-            dataTableOutput(outputId = paste0("ts_time_used_", ts_tabindex())),
-            tags$b(
-              tags$a(
-                icon("code"),
-                translate("Show code", language = language_selected, words_one),
-                `data-toggle` = "collapse",
-                href = paste0("#showcode_time", ts_tabindex())
-              )
-            ),
-            tags$div(
-              class = "collapse",
-              id = paste0("showcode_time", ts_tabindex()),
-              tags$code(
-                class = "language-r",
-                paste0("dat <- ", '"', input$file$name, '"'),
-                tags$br(),
-                paste0("ts_inla_", ts_tabindex()),
-                " <- ",
-                ts_inla_call_print[[ts_output_name]],
-                tags$br(),
-                paste0("ts_inla_", ts_tabindex(), "$cpu.sued")
-              )
-            )
-          ),
-          dropdownButton(
-            icon = icon("download"),
-            up = TRUE,
-            status = "myclass",
-            inputId = paste0("download_rdata_", ts_tabindex()),
-            actionButton("test", "test"),
-            tags$head(
-              tags$style(
-                "
-                             .btn-myclass {
-                                position: fixed;
-                                bottom: 20px;
-                                right: 30px;
-                                z-index: 99;
-                                font-size: 18px;
-                                border: none;
-                                outline: none;
-                                background-color: #12a19b;
-                                color: white;
-                                cursor: pointer;
-                                padding: 15px;
-                                border-radius: 4px;
-                             }
-                              .dropup .dropdown-menu, .navbar-fixed-bottom .dropdown .dropdown-menu {
-                      top: auto;
-                      bottom: 8vh;
-                      right: 80px;
-                      left: auto;
-                      position: fixed;
-                  }
-                             "
-              )
-            )
-          )
-        )
-      ),
-      # fluidrow ends here
-      fluidRow(
-        column(
-          width = 12,
-          box(
-            id = paste0("ts_box_fix_effects_", ts_tabindex()),
-            title = translate("Fixed Effects", language = language_selected, words_one),
-            status = "primary",
-            solidHeader = TRUE,
-            width = 12,
-            dataTableOutput(outputId = paste0("ts_fix_effects_", ts_tabindex())),
-            tags$b(
-              tags$a(
-                icon("code"),
-                translate("Show code", language = language_selected, words_one),
-                `data-toggle` = "collapse",
-                href = paste0("#showcode_fix_effects_", ts_tabindex())
-              )
-            ),
-            tags$div(
-              class = "collapse",
-              id = paste0("showcode_fix_effects_", ts_tabindex()),
-              tags$code(
-                class = "language-r",
-                paste0("dat <- ", '"', input$file$name, '"'),
-                tags$br(),
-                paste0("ts_inla_", ts_tabindex()),
-                " <- ",
-                ts_inla_call_print[[ts_output_name]],
-                tags$br(),
-                paste0("ts_inla_", ts_tabindex(), "$summary.fixed")
-              )
-            ),
-            footer = downloadBttn(
-              outputId = paste0("download_summary_", ts_tabindex()),
-              label = translate("Save Summary data", language = language_selected, words_one),
-              style = "material-flat",
-              size = "xs"
-            )
-          )
-        ),
-        column(
-          width = 12,
-          useShinyjs(),
-          fluidRow(
-            conditionalPanel(
-              condition = "(input.ccompute_input_2 != '') || (input.ccompute_input_2 == '' &&  input.ccompute_input_2 == true)",
-              box(
-                id = paste0("ts_box_model_hyper_", ts_tabindex()),
-                title = translate("Model Hyperparameters", language = language_selected, words_one),
-                status = "primary",
-                solidHeader = TRUE,
-                width = 6,
-                dataTableOutput(outputId = paste0("ts_model_hyper_", ts_tabindex())),
-                tags$b(
-                  tags$a(
-                    icon("code"),
-                    translate("Show code", language = language_selected, words_one),
-                    `data-toggle` = "collapse",
-                    href = paste0("#showcode_model_hyper_", ts_tabindex())
-                  )
-                ),
-                tags$div(
-                  class = "collapse",
-                  id = paste0("showcode_model_hyper_", ts_tabindex()),
-                  tags$code(
-                    class = "language-r",
-                    paste0("dat <- ", '"', input$file$name, '"'),
-                    tags$br(),
-                    paste0("ts_inla_", ts_tabindex()),
-                    " <- ",
-                    ts_inla_call_print[[ts_output_name]],
-                    tags$br(),
-                    paste0("ts_inla_", ts_tabindex(), "$summary.hyperpar")
-                  )
-                )
-              )
-            ),
-            box(
-              id = paste0("ts_box_neffp_", ts_tabindex()),
-              title = translate(
-                "Expected Effective Number of Parameters in the Model",
-                language = language_selected,
-                words_one
-              ),
-              status = "primary",
-              solidHeader = TRUE,
-              width = 6,
-              dataTableOutput(outputId = paste0("ts_neffp_", ts_tabindex())),
-              tags$b(
-                tags$a(
-                  icon("code"),
-                  translate("Show code", language = language_selected, words_one),
-                  `data-toggle` = "collapse",
-                  href = paste0("#showcode_neffp_", ts_tabindex())
-                )
-              ),
-              tags$div(
-                class = "collapse",
-                id = paste0("showcode_neffp_", ts_tabindex()),
-                tags$code(
-                  class = "language-r",
-                  paste0("dat <- ", '"', input$file$name, '"'),
-                  tags$br(),
-                  paste0("ts_inla_", ts_tabindex()),
-                  " <- ",
-                  ts_inla_call_print[[ts_output_name]],
-                  tags$br(),
-                  paste0("ts_inla_", ts_tabindex(), "$neffp")
-                )
-              )
-            ),
-            conditionalPanel(
-              condition = "(input.ccompute_input_4 != '' &&  input.ccompute_input_4 == true)",
-              box(
-                id = paste0("ts_box_dic_waic_", ts_tabindex()),
-                title = translate("DIC and WAIC", language = language_selected, words_one),
-                status = "primary",
-                solidHeader = TRUE,
-                width = 6,
-                dataTableOutput(outputId = paste0("ts_dic_waic_", ts_tabindex())),
-                tags$b(
-                  tags$a(
-                    icon("code"),
-                    translate("Show code", language = language_selected, words_one),
-                    `data-toggle` = "collapse",
-                    href = paste0("#showcode_dic_waic_", ts_tabindex())
-                  )
-                ),
-                tags$div(
-                  class = "collapse",
-                  id = paste0("showcode_dic_waic_", ts_tabindex()),
-                  tags$code(
-                    class = "language-r",
-                    paste0("dat <- ", '"', input$file$name, '"'),
-                    tags$br(),
-                    paste0("ts_inla_", ts_tabindex()),
-                    " <- ",
-                    ts_inla_call_print[[ts_output_name]],
-                    tags$br(),
-                    paste0("ts_inla_", ts_tabindex(), "$dic$dic"),
-                    tags$br(),
-                    paste0("ts_inla", ts_tabindex(), "$dic$dic.sat"),
-                    tags$br(),
-                    paste0("ts_inla", ts_tabindex(), "$dic$p.eff")
-                  )
-                )
-              )
-            )
-          )
+        useShinydashboard(),
+        useShinyjs(),
+        results_UI(
+          id = ts_output_name,
+          moduleID = "ts",
+          INLAresult = ts_inla[[ts_output_name]],
+          control_compute = control_compute_input,
+          control_inla = control_inla_input,
+          inla_call_print = ts_inla_call_print[[ts_output_name]],
+          tab_index = ts_tabindex,
+          data_input = data_input
         )
       )
     )
-  )
-  
-  # "Server" of result tab
-  
-  # Call
-  output[[paste0("ts_call", ts_tabindex())]] <- renderText({
-    ts_inla_call_print[[ts_output_name]]
-  })
-  
-  # Download Script
-  output[[paste0("download_script_", ts_tabindex())]] <-
-    downloadHandler(
-      filename = function() {
-        paste0("model_", ts_tabindex(), "_script", ".r")
-      },
-      content = function(file) {
-        write(paste(
-          paste0("dat <- read.csv2(", input$file$datapath, ")"),
-          paste0("inla_model_",
-                 ts_tabindex(),
-                 "<-",
-                 ts_inla_call_print[[ts_output_name]]),
-          sep = "\n"
-        ), file)
-      }
+    results_server(
+      id = ts_output_name,
+      moduleID = "ts",
+      INLAresult = ts_inla[[ts_output_name]],
+      control_compute = control_compute_input,
+      control_inla = control_inla_input,
+      inla_call_print = ts_inla_call_print[[ts_output_name]],
+      tab_index = ts_tabindex,
+      data_input = data_input
     )
-  
-  # Time Used
-  output[[paste0("ts_time_used_", ts_tabindex())]] <-
-    renderDataTable({
-      data_time_used <- ts_inla[[ts_output_name]][["cpu.used"]] %>%
-        t() %>%
-        as.data.frame(row.names = c("Time")) %>%
-        round(digits = 5)
-      
-      DT::datatable(data = data_time_used,
-                    options = list(dom = "t",
-                                   pageLength = 5))
-    })
-  
-  # Fixed Effects
-  output[[paste0("ts_fix_effects_", ts_tabindex())]] <-
-    renderDataTable({
-      ts_inla[[ts_output_name]][["summary.fixed"]] %>%
-        round(digits = 5)
-    },
-    options = list(paging = FALSE,
-                   dom = "t"))
-  
-  # Download Summary
-  output[[paste0("download_summary_", ts_tabindex())]] <-
-    downloadHandler(
-      filename = function() {
-        paste0("model_", ts_tabindex(), "summary.csv")
-      },
-      content = function(file) {
-        write.csv2(as.data.frame(ts_inla[[ts_output_name]]$summary.fixed), file = file)
-      }
-    )
-  
-  # Model Hyper
-  output[[paste0("ts_model_hyper_", ts_tabindex())]] <-
-    renderDataTable({
-      ts_inla[[ts_output_name]][["summary.hyperpar"]] %>%
-        round(digits = 5)
-    },
-    options = list(dom = "t",
-                   paging = FALSE))
-  
-  # Others (neffp)
-  output[[paste0("ts_neffp_", ts_tabindex())]] <-
-    renderDataTable({
-      ts_neffp_dataframe <-
-        ts_inla[[ts_output_name]][["neffp"]] %>%
-        round(digits = 5)
-      colnames(ts_neffp_dataframe) <- "Expected Value"
-      ts_neffp_dataframe
-    },
-    options = list(dom = "t",
-                   paging = FALSE))
-  
-  # Devicance Information Criterion (DIC)
-  output[[paste0("ts_dic_waic_", ts_tabindex())]] <-
-    renderDataTable({
-      data.frame(
-        "DIC" = ts_inla[[ts_output_name]][["dic"]][["dic"]],
-        "DIC Saturated" = ts_inla[[ts_output_name]][["dic"]][["dic.sat"]],
-        "Effective number of parameters (DIC)" = ts_inla[[ts_output_name]][["dic"]][["p.eff"]],
-        "WAIC" = ts_inla[[ts_output_name]][["waic"]][["waic"]],
-        "Effective number of parameters (WAIC)" = ts_inla[[ts_output_name]][["waic"]][["p.eff"]],
-        row.names = "Expected Value"
-      ) %>%
-        round(digits = 5) %>%
-        t()
-    },
-    options = list(dom = "t",
-                   paging = FALSE))
-  
-  ts_tabindex(ts_tabindex() + 1)
+    ts_tabindex(ts_tabindex() + 1)
+  }
 })
