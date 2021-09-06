@@ -44,6 +44,7 @@ load("data/options_modal_words.RData")
 load("data/file_modal_words.RData")
 load("data/glm_modal_words.RData")
 load("data/lm_modal_words.RData")
+load("data/Dictionary/words_one.RData")
 
 #Bottons and boxes
 model_buttons <- list()
@@ -79,7 +80,6 @@ surv_family <- str_subset(string = names(inla.models()$likelihood), pattern = c(
 ts_family <- names(inla.models()$likelihood)
 
 language_selected <- ifelse(!exists("input$language"), "en", input$language)
-words_one <- NULL
 
 spatial_models <- c("rw2d", "matern2d", "besagproper", "besag0", "bym")
 

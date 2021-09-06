@@ -22,10 +22,14 @@ translate_modal <- function(words_to_translate, json) {
     "yi", "yo", "zu", "he", "zh"
   )
   
+  #Removing Duplicates
+  words_to_translate_u <- unique(words_to_translate)
+  
+  
   #Organaizing the data.frame output
-  words_translated <- data.frame(matrix(nrow = length(words_to_translate), ncol = 111)) 
+  words_translated <- data.frame(matrix(nrow = length(words_to_translate_u), ncol = 111)) 
   colnames(words_translated) <- c("en", translate_languages)
-  words_translated$en <- words_to_translate
+  words_translated$en <- words_to_translate_u
   
   #Get autorization to use the Google API
   gl_auth(json)
@@ -33,8 +37,8 @@ translate_modal <- function(words_to_translate, json) {
   aux_translate <- 0
   #Translating 
   #110
-  for(i in 1:1){
-    aux_translate <- googleLanguageR::gl_translate(t_string = words_to_translate,
+  for(i in 1:110){
+    aux_translate <- googleLanguageR::gl_translate(t_string = words_to_translate_u,
                                                    target = translate_languages[i],
                                                    source = "en")
     words_translated[[i+1]] <- aux_translate[[1]]

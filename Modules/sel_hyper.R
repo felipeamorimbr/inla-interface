@@ -65,7 +65,7 @@ sel_hyper <- function(id, Link, formula_data, linkLabel = NULL){
             aux_hyper_dist <- paste0("hyper_dist_", i)
             aux_hyper_ui <- paste0("hyper_ui_", i)
             list_ui[[i]] <- column(6, selectInput(inputId = ns(aux_hyper_dist), choices = priors_distributions, selected = hyper_default(family_react(), i),
-                                                  label = paste0(translate("Selct Priros for ", language = language_selected, words_one), name_hyper(family_react(), i)),
+                                                  label = paste0(translate("Select Priros for", language = language_selected, words_one), " ", name_hyper(family_react(), i)),
                                                   width = "100%"),
                                    uiOutput(outputId = ns(aux_hyper_ui)))
           }

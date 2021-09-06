@@ -192,8 +192,7 @@ observeEvent(input$lm_ok, {
         title = paste0(translate("Linear Model", language = language_selected, words_one), " ",lm_tabindex()),
         useShinydashboard(),
         useShinyjs(),
-        results_UI(id = lm_output_name, moduleID = "lm", INLAresult = lm_inla[[lm_output_name]],
-                   control_compute = control_compute_input, control_inla = control_inla_input,
+        results_UI(id = lm_output_name, INLAresult = lm_inla[[lm_output_name]],
                    inla_call_print = lm_inla_call_print[[lm_output_name]], tab_index = lm_tabindex, data_input = data_input)
       #   fluidRow(
       #     column(
@@ -495,8 +494,7 @@ observeEvent(input$lm_ok, {
     #     paging = FALSE
     #   )
     # )
-    results_server(id = lm_output_name, moduleID = "lm", INLAresult = lm_inla[[lm_output_name]],
-               control_compute = control_compute_input, control_inla = control_inla_input,
+    results_server(id = lm_output_name, INLAresult = lm_inla[[lm_output_name]],
                inla_call_print = lm_inla_call_print[[lm_output_name]], tab_index = lm_tabindex, data_input = data_input)
     lm_tabindex(lm_tabindex() + 1)
   }

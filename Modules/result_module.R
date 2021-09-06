@@ -1,5 +1,6 @@
 # Results Modal
-results_UI <- function(id, moduleID, INLAresult, control_compute, control_inla, inla_call_print, tab_index, data_input) {
+#UI ----
+results_UI <- function(id, INLAresult, inla_call_print, tab_index, data_input) {
   ns <- NS(id)
 
   tagList(
@@ -200,7 +201,9 @@ results_UI <- function(id, moduleID, INLAresult, control_compute, control_inla, 
   )
 }
 
-results_server <- function(id, moduleID, INLAresult, control_compute, control_inla, inla_call_print, tab_index, data_input){
+#Server ----
+
+results_server <- function(id, INLAresult, inla_call_print, tab_index, data_input){
   moduleServer(
     id,
     function(input, output, session){

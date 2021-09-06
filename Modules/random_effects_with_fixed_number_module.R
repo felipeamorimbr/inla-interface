@@ -27,13 +27,15 @@ random_effects_with_fix <- function(id, formula_data, model_choice, number_rando
                      pickerInput(
                        inputId = ns(paste0("covariate_", i)),
                        label = paste0(translate("Select the covariate to the Random Effect ", language_selected, words_one),
+                                      " ",
                                       random_effect_label[i]),
                        choices = not_selected(),
                        multiple = FALSE
                      ),
                      pickerInput(
                        inputId = ns(paste0("model_",i)),
-                       label = paste0(translate("Select the model to the Random Effect ", language_selected, words_one),
+                       label = paste0(translate("Select the model to the Random Effect", language_selected, words_one),
+                                      " ",
                                       random_effect_label[i]),
                        choices = model_choice[[i]],
                        multiple = FALSE
@@ -85,11 +87,11 @@ random_effects_with_fix <- function(id, formula_data, model_choice, number_rando
 #   })
 # 
 #   result_test <- random_effects_with_fix(id = "test",
-#                                          covariates = c("X1", "X2", "X3"),
+#                                          formula_data = list(not_selected = reactive({c('X1','X2','X3')})),
 #                                          model_choice = list(c("iid", "linear"), c("iid", "linear")),
 #                                          number_random_effects = 2,
-#                                          random_effect_label = c("A", "B"))
-#                                         
+#                                          random_effect_label = c("spatial", "time"))
+# 
 # }
 # 
 # shinyApp(ui, server)
